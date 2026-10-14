@@ -1,0 +1,53 @@
+,Ready 4 Publish,Pack items ,This or That or Scenarios,Enska,Íslenska,Versus-English,,Versus-Íslenska,
+id,,Pack,Length,Description Enska,Description Íslenska,This,That,Hitt,Þetta
+1,TRUE,General,Scenarios,The cops have been arresting members of a nudist cult. Should we allow religious exemptions for public nudity?,Lögreglan hefur verið að handtaka meðlimi núdista sértrúaðarsafnaðar í Vestmannaeyjum. Ætti nekt á almannafæri að vera leyfð í þágu trúarbragða?,For,Against,Með,Á móti
+2,TRUE,General,Scenarios,Kids spend hours every day scrolling online. Should we implement restrictions preventing young adults from accessing social media.,Ætti samfélagsmiðlanotkun barna og ungmenna að vera bönnuð?,For,Against,Með,Á móti
+3,TRUE,General,Scenarios,"Your taxi driver was very nice and funny, but had extreme road rage during the ride. Do you leave a good tip?",Leigubílstjórinn minn var viðkunnalegur og kurteis við mig en var öskuillur við aðra ökumenn í gegnum allt ferðalagið. Ætti ég að greiða honum þjórfé?,For,Against,Með,Á móti
+4,TRUE,General,Scenarios,Use of fragrances should be banned on commercial flights.,Rakspírar og ilmvötn ættu að vera bönnuð til notkunar í farþegaflugum.,For,Against,Með,Á móti
+5,TRUE,General,Scenarios,Drama classes should be mandatory in all elementary schools to encourage emotional expression.,Leiklist ætti að vera skyldugt fag í öllum grunnskólum til að styrkja tjáningu og tilfinningagreind barna.,For,Against,Með,Á móti
+6,TRUE,General,Scenarios,Online influencers should receive government supplied artist salaries from the state.,Áhrifavaldar ættu að vera á listamannalaunum.,For,Against,Með,Á móti
+7,TRUE,General,Scenarios,It is acceptable to only offer beer at a social gathering that advertises free drinks.,Það er í lagi að bjóða aðeins upp á áfenga drykki í samkvæmi sem auglýsir fría drykki.,For,Against,Með,Á móti
+8,TRUE,General,Scenarios,A fridge thief steals your lunch every day at work. HR refuses to do anything about it. Is it moraly justified to put an absurd amount of hot sauce in your food to find the culprit?,Óþekktur samstarfsfélagi þinn stelur reglulega hádegismatnum þínum og mannauður hefur sagst ætla ekki að hjálpa þér með þetta. Er í lagi siðferðislega að setja óaðfinnanlega mikið af chili sósu til að finna sökudólginn?,For,Against,Með,Á móti
+9,TRUE,General,Scenarios,"Would you make a child cry on national TV for 10,000 USD?",Myndir þú græta barn fyrir 1.000.000 ISK í beinni útsendingu?,For,Against,Með,Á móti
+10,TRUE,General,Scenarios,You discover that your 95 year old grandpa is the Zodiac Killer. Do you turn him in?,Þú kemst að því að 95 ára afi þinn er Zodiac morðinginn. Tilkynnir þú það til lögreglu?,For,Against,Með,Á móti
+11,TRUE,General,Scenarios,You find a suitcase stuffed full of cash while walking in the forest. Do you take it with you or contact the police?,Þú ert út í fjöru og finnur skjalatösku stútfulla af seðlum. Tekur þú töskuna eða tilkynnir þetta til lögreglu?,For,Against,Með,Á móti
+12,TRUE,General,Scenarios,The moon landing was fake.,Tunglendingin var sviðsett.,For,Against,Með,Á móti
+13,TRUE,General,Scenarios,AI art is not art.,List búin til með gervigreind er ekki list.,For,Against,Með,Á móti
+14,TRUE,General,Scenarios,All cash should be dropped.,Seðlar og klink ætti að vera lagt niður.,For,Against,Með,Á móti
+15,TRUE,General,Scenarios,Laugh tracks are only used by unfunny sitcoms.,Dósahlátur er aðeins notaður af ófyndnum gamanþáttaröðum.,For,Against,Með,Á móti
+16,TRUE,General,Scenarios,NBA or NFL teams should not call themselves ‘World Champions’.,Bandarísk körfuboltalið ættu ekki að kalla sig heimsmeistara eftir að vinna NBA deildina.,For,Against,Með,Á móti
+17,TRUE,General,Scenarios,Philosophy is a usefull degree,Heimspeki er nytsamleg gráða.,For,Against,Með,Á móti
+18,TRUE,General,Scenarios,Marvel movies are not cinema.,Marvel myndir eru ekki kvikmyndir.,For,Against,Með,Á móti
+19,TRUE,General,Scenarios,Newspapers are propaganda machines.,Fréttamiðlar eru eintómur áróður.,For,Against,Með,Á móti
+20,TRUE,General,Scenarios,90% of runners would stop running if they could not post about it online.,Langflestir hlauparar myndu hætta að hlaupa ef þeir mættu ekki sýna það á samfélagsmiðlum.,For,Against,Með,Á móti
+21,TRUE,General,This or That,Playing video games is a waste of time.,Að spila tölvuleiki er tímaeyðsla.,Agree,Disagree,Sammála,Ósammála
+22,TRUE,General,This or That,Which is the better pet,Hvort eru hundar eða kettir betri gæludýr?,Cats,Dogs,Kettir,Hundar
+23,TRUE,General,This or That,School teachers should be strict.,Kennarar eiga að vera strangir.,Strict,Lenient,Strangir,væginn
+24,TRUE,General,This or That,Fart jokes are hilarious.,Prumpugrín eru fyndin.,Funny,Unfunny,Fyndinn,Ekki fyndinn
+25,TRUE,General,This or That,Which is the better post-clubbing meal,Pylsur eru betri en Kebab eftir djammið,Hot dogs,Kebabs,Pylsur,Kebab
+26,TRUE,General,This or That,"Would you rather be told when you die, or how you die",Myndir þú frekar vilja vita hvenær þú deyrð eða hvernig þú deyrð?,When,How,Hvenær,Hvernig
+27,TRUE,General,This or That,Art critics are worth listening to.,Það er þess virði að hlusta á listagagnrýnendur.,Yes,No,Já,Nei
+28,TRUE,General,This or That,Artificial christmas trees VS Natural christmas trees.,Gervi jólatré eru betri en alvöru jólatré.,Artificial,Natural,Gervi,Alvöru
+29,TRUE,General,This or That,Fairytales are good for children.,Ævintýrasögur eru góðar fyrir börn.,Yes, No,Já,Nei
+30,TRUE,General,This or That,Art can objectively be bad.,List getur verið léleg.,Yes,No,Já,Nei
+31,TRUE,General,This or That,Aliens are real.,Geimverur eru til.,Yes,No,Já,Nei
+32,TRUE,General,This or That,Are smartphones making us less smart?,Eru snjallsímar að gera okkur heimskari?,Less smart,They don't,Minna klár,Gera það ekki
+33,TRUE,General,This or That,Do the costs of AI outweigh its benefits?,Vegur kostnaðurinn við gervigreind þyngra en ávinningurinn?,Yes,No,Já,Nei
+34,TRUE,General,This or That,Fashion is art.,Tíska er list.,It's art,Not art,Það er list,Ekki list
+35,TRUE,General,This or That,It can be justifiable to break the law.,Það er til staður og stund þar sem það er í lagi að brjóta lögin.,Yes,No,Já,Nei
+36,TRUE,General,This or That,It is sometimes okay to lie.,Það er stundum í lagi að ljúga.,Sometimes,Never,Stundum,Aldrei
+37,TRUE,General,This or That,Ghosts are real.,Draugar eru til.,They exist,Don't exist,Þeir eru til,Þeir eru ekki til
+38,TRUE,General,This or That,Coffee VS Energy Drinks,Kaffi eða orkudrykkir?,Coffee,Energy Drinks,Kaffi,Orkudrykkir
+39,TRUE,General,This or That,Is it immoral to eat meat?,Er það siðlaust að borða kjöt?,Yes,No,Já,Nei
+40,TRUE,General,This or That,Sneakers can be just as fancy as dress shoes.,Strigaskór geta verið jafn fínir og spariskór.,Yes,No,Já,Nei
+41,TRUE,General,This or That,Time you enjoy wasting is not wasted time,Tími sem þú nýtur þess að sóa er ekki sóaður tími,Yes,No,Já,Nei
+42,TRUE,General,This or That,Water has taste.,Það er bragð af vatni.,Taste,No taste,Bragð,Ekkert bragð
+43,TRUE,General,This or That,Zoos are ethical.,Dýragarðar eru siðferðislega góðir.,Ethical,Not ethical,Siðferðislegir,Ósiðferðislegir
+44,TRUE,General,This or That,Money can buy happiness.,Peningar geta keypt hamingju.,Can buy,Can't buy,Geta keypt,Geta ekki keypt
+45,TRUE,General,This or That,Parents should monitor their children’s phones.,Foreldrar ættu að fylgjast með símanotkun barna sinna.,Yes,No,Já,Nei
+46,TRUE,General,This or That,Dogs are better than humans.,Hundar eru betri en mannfólk.,Yes,No,Já,Nei
+47,TRUE,General,This or That,Pineapple belongs on pizza.,Ananas á heima á pizzu.,Yummy Pineapple,No chance,Já takk,Ekki séns
+48,TRUE,General,This or That,Dating culture is dead.,Stefnumótamenning er dauð.,Yes,No,Já,Nei
+49,TRUE,General,This or That,Friends (the TV Show) is unfunny.,Sjónarpsserían Vinir (e. Friends) er ekki fyndið,Funny,Unfunny,Fyndið,Ófyndið
+50,TRUE,General,This or That,Divine beings exist.,Yfirnáttúrulegar verur eru til.,Yes,No,Já,Nei
+51,TRUE,General,This or That,Vaccines.,Bóluefni.,Pro,Anti,Fyrir,Á móti

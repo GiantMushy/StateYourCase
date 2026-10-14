@@ -1,0 +1,213 @@
+Unity button animator controllers. Transitions are AnyState crossfades (linear blend, fixed seconds).
+Clips with an empty curve list mean "scene default values" (write defaults).
+Curve format: <child path> <Component>.<property> = time:value
+
+=== Button Cassett
+  any-> Normal dur=0.01 fixed=True canSelf=True
+  any-> Highlighted dur=0.05 fixed=True canSelf=True
+  any-> Pressed dur=0.05 fixed=True canSelf=True
+  any-> Selected dur=0.05 fixed=True canSelf=True
+  any-> Disabled dur=0 fixed=True canSelf=True
+ clip Normal len=1 loop=True
+ clip Highlighted len=0 loop=True
+    RectTransform.m_LocalScale.x = 0:1.1
+    RectTransform.m_LocalScale.y = 0:1.1
+    RectTransform.m_LocalScale.z = 0:1.1
+ clip Pressed len=0.017 loop=True
+   Border RectTransform.m_AnchoredPosition.y = 0:-9
+   Border RectTransform.m_SizeDelta.y = 0:-18
+   Background RectTransform.m_AnchoredPosition.y = 0:-6
+   Background RectTransform.m_SizeDelta.y = 0:-24
+   Text (TMP) RectTransform.m_AnchoredPosition.y = 0:-9.51
+   Text (TMP) RectTransform.m_SizeDelta.y = 0:176.59
+   Border Image.m_Sprite = 0:Button Border Pressed Sharp
+ clip Selected len=0.017 loop=True
+   Background RectTransform.m_AnchoredPosition.y = 0:-6
+   Background RectTransform.m_SizeDelta.y = 0:-24
+   Border RectTransform.m_AnchoredPosition.y = 0:-9
+   Border RectTransform.m_SizeDelta.y = 0:-18
+   Text (TMP) RectTransform.m_AnchoredPosition.y = 0:-9.51
+   Text (TMP) RectTransform.m_SizeDelta.y = 0:176.59
+   Background Image.m_Color.r = 0:0.764
+   Background Image.m_Color.g = 0:0.764
+   Background Image.m_Color.b = 0:0.764
+   Border Image.m_Sprite = 0:Button Border Pressed Sharp
+ clip Disabled len=0 loop=True
+   Background Image.m_Color.a = 0:0.15
+   Border Image.m_Color.r = 0:0.547
+   Border Image.m_Color.g = 0:0.547
+   Border Image.m_Color.b = 0:0.547
+=== Button Default
+  any-> Normal dur=0.25 fixed=True canSelf=True
+  any-> Highlighted dur=0.05 fixed=True canSelf=True
+  any-> Pressed dur=0.05 fixed=True canSelf=True
+  any-> Selected dur=0.05 fixed=True canSelf=True
+  any-> Disabled dur=0 fixed=True canSelf=True
+ clip Normal len=1 loop=True
+ clip Highlighted len=0 loop=True
+    RectTransform.m_LocalScale.x = 0:1.05
+    RectTransform.m_LocalScale.y = 0:1.05
+    RectTransform.m_LocalScale.z = 0:1.05
+ clip Pressed len=0 loop=True
+   3D Border RectTransform.m_AnchoredPosition.y = 0:-5.75
+   3D Border RectTransform.m_SizeDelta.y = 0:-11.5
+   Background RectTransform.m_AnchoredPosition.y = 0:-8
+   Background RectTransform.m_SizeDelta.y = 0:-24
+   Background Image.m_Color.a = 0:0.58
+   Border RectTransform.m_AnchoredPosition.y = 0:-8
+   Text (TMP) RectTransform.m_AnchoredPosition.y = 0:-5
+ clip Selected len=0 loop=True
+   3D Border RectTransform.m_AnchoredPosition.y = 0:-5.75
+   3D Border RectTransform.m_SizeDelta.y = 0:-11.5
+   Background RectTransform.m_AnchoredPosition.y = 0:-8
+   Background RectTransform.m_SizeDelta.y = 0:-24
+   Border RectTransform.m_AnchoredPosition.y = 0:-8
+   Text (TMP) RectTransform.m_AnchoredPosition.y = 0:-5
+   Background Image.m_Color.a = 0:0.58
+ clip Disabled len=0 loop=True
+   Background Image.m_Color.r = 0:0.259
+   Background Image.m_Color.g = 0:0.259
+   Background Image.m_Color.b = 0:0.259
+   Background Image.m_Color.a = 0:0.471
+=== Button PlayerInAccList
+  any-> Normal dur=0.25 fixed=True canSelf=True
+  any-> Highlighted dur=0.05 fixed=True canSelf=True
+  any-> Pressed dur=0.05 fixed=True canSelf=True
+  any-> Selected dur=0.05 fixed=True canSelf=True
+  any-> Disabled dur=0 fixed=True canSelf=True
+  any-> Crossfire_On dur=0.05 fixed=True canSelf=False
+  any-> Crossfire_Off dur=0.05 fixed=True canSelf=False
+ clip Normal len=1 loop=True
+ clip Highlighted len=0 loop=True
+    RectTransform.m_LocalScale.x = 0:1.1
+    RectTransform.m_LocalScale.y = 0:1.1
+    RectTransform.m_LocalScale.z = 0:1.1
+ clip Pressed len=0.017 loop=True
+   Border RectTransform.m_AnchoredPosition.y = 0:-5.5
+   Border RectTransform.m_SizeDelta.y = 0:-12
+   Background RectTransform.m_AnchoredPosition.y = 0:-6
+   Background RectTransform.m_SizeDelta.y = 0:-24
+   Name RectTransform.m_AnchoredPosition.y = 0:-5
+   Icon RectTransform.m_AnchoredPosition.y = 0:-12
+   Border Image.m_Sprite = 0:Button Border Pressed Square
+ clip Selected len=0.017 loop=True
+   Border RectTransform.m_AnchoredPosition.y = 0:-6
+   Border RectTransform.m_SizeDelta.y = 0:-12
+   Background RectTransform.m_AnchoredPosition.y = 0:-6
+   Background RectTransform.m_SizeDelta.y = 0:-24
+   Background Image.m_Color.a = 0:0.6
+   Name RectTransform.m_AnchoredPosition.y = 0:0
+   Icon RectTransform.m_AnchoredPosition.y = 0:-12
+   Border Image.m_Sprite = 0:Button Border Pressed Square
+ clip Disabled len=0 loop=True
+   Background Image.m_Color.a = 0:0.227
+   Border Image.m_Color.a = 0:0.502
+   Background RectTransform.m_AnchoredPosition.y = 0:4.144
+   Background RectTransform.m_SizeDelta.y = 0:-8.289
+   Background RectTransform.m_AnchoredPosition.x = 0:0
+   Background RectTransform.m_SizeDelta.x = 0:0
+ clip Crossfire_Off len=1 loop=True
+ clip Crossfire_On len=0 loop=True
+   Border Image.m_Color.r = 0:0.4
+   Border Image.m_Color.g = 0:0.1
+   Border Image.m_Color.b = 0:0.2
+   Background Image.m_Color.r = 0:0.7
+   Background Image.m_Color.g = 0:0.1
+   Background Image.m_Color.b = 0:0.2
+   Name TextMeshProUGUI.m_fontColor.r = 0:0.961
+   Name TextMeshProUGUI.m_fontColor.g = 0:0.961
+   Name TextMeshProUGUI.m_fontColor.b = 0:0.961
+   Icon Image.m_Color.r = 0:0.961
+   Icon Image.m_Color.g = 0:0.961
+   Icon Image.m_Color.b = 0:0.961
+=== Button Scenario
+  any-> Normal dur=0.25 fixed=True canSelf=True
+  any-> Highlighted dur=0.25 fixed=True canSelf=True
+  any-> Pressed dur=0.25 fixed=True canSelf=True
+  any-> Selected dur=0.25 fixed=True canSelf=True
+  any-> Disabled dur=0.25 fixed=True canSelf=True
+ clip Normal len=1 loop=True
+ clip Highlighted len=0 loop=True
+    RectTransform.m_LocalScale.x = 0:1.04
+    RectTransform.m_LocalScale.y = 0:1.04
+    RectTransform.m_LocalScale.z = 0:1.04
+ clip Pressed len=0.017 loop=True
+   Backround RectTransform.m_AnchoredPosition.y = 0:-6
+   Backround RectTransform.m_SizeDelta.y = 0:-22
+   Border RectTransform.m_AnchoredPosition.y = 0:-6
+   Border RectTransform.m_SizeDelta.y = 0:-12
+   Icon RectTransform.m_AnchoredPosition.y = 0:-90
+   Text (TMP) RectTransform.m_AnchoredPosition.y = 0:64
+   Border Image.m_Sprite = 0:Rectangle 110
+ clip Selected len=0.017 loop=True
+   Backround RectTransform.m_AnchoredPosition.y = 0:-6
+   Backround RectTransform.m_SizeDelta.y = 0:-22
+   Border RectTransform.m_AnchoredPosition.y = 0:-6
+   Border RectTransform.m_SizeDelta.y = 0:-12
+   Icon RectTransform.m_AnchoredPosition.y = 0:-90
+   Text (TMP) RectTransform.m_AnchoredPosition.y = 0:64
+   Backround Image.m_Color.a = 0:0.9
+   Border Image.m_Sprite = 0:Rectangle 110
+ clip Disabled len=0 loop=True
+    CanvasGroup.m_Alpha = 0:0.7
+=== Button Shuffle
+  any-> Normal dur=0.1 fixed=True canSelf=True
+  any-> Highlighted dur=0.25 fixed=True canSelf=True
+  any-> Pressed dur=0.1 fixed=True canSelf=True
+  any-> Selected dur=0.1 fixed=True canSelf=True
+  any-> Disabled dur=0.25 fixed=True canSelf=True
+ clip Normal len=1 loop=True
+ clip Highlighted len=0 loop=True
+    RectTransform.m_LocalScale.x = 0:1.04
+    RectTransform.m_LocalScale.y = 0:1.04
+    RectTransform.m_LocalScale.z = 0:1.04
+ clip Pressed len=0.017 loop=True
+   Border RectTransform.m_AnchoredPosition.y = 0:-6
+   Border RectTransform.m_SizeDelta.y = 0:-12
+   Background RectTransform.m_AnchoredPosition.y = 0:-6.642
+   Background RectTransform.m_SizeDelta.y = 0:-23.285
+   Text (TMP) RectTransform.m_AnchoredPosition.y = 0:-4.4
+   Icon RectTransform.m_AnchoredPosition.y = 0:-9.604
+   Text (TMP) RectTransform.m_AnchoredPosition.x = 0:33.1
+   Icon RectTransform.m_AnchoredPosition.x = 0:-37.164
+   Border Image.m_Sprite = 0:Rectangle 97
+ clip Selected len=1 loop=True
+ clip Disabled len=0 loop=True
+   Background Image.m_Color.r = 0:0.67
+   Background Image.m_Color.g = 0:0.667
+   Background Image.m_Color.b = 0:0.667
+   Border Image.m_Color.r = 0:0.745
+   Border Image.m_Color.g = 0:0.745
+   Border Image.m_Color.b = 0:0.745
+   Icon Image.m_Color.a = 0:0.694
+   Text (TMP) TextMeshProUGUI.m_fontColor.a = 0:0.773
+=== Button Versus
+  any-> Normal dur=0.1 fixed=True canSelf=True
+  any-> Highlighted dur=0.25 fixed=True canSelf=True
+  any-> Pressed dur=0.1 fixed=True canSelf=True
+  any-> Selected dur=0.1 fixed=True canSelf=True
+  any-> Disabled dur=0.25 fixed=True canSelf=True
+ clip Normal len=1 loop=True
+ clip Highlighted len=0 loop=True
+    RectTransform.m_LocalScale.x = 0:1.04
+    RectTransform.m_LocalScale.y = 0:1.04
+    RectTransform.m_LocalScale.z = 0:1.04
+ clip Pressed len=0.017 loop=True
+   Backround RectTransform.m_AnchoredPosition.y = 0:-6
+   Backround RectTransform.m_SizeDelta.y = 0:-22
+   Border RectTransform.m_AnchoredPosition.y = 0:-6
+   Border RectTransform.m_SizeDelta.y = 0:-12
+   Icon RectTransform.m_AnchoredPosition.y = 0:-81
+   Text (TMP) RectTransform.m_AnchoredPosition.y = 0:64
+   Border Image.m_Sprite = 0:Rectangle 113
+ clip Selected len=0.017 loop=True
+   Backround RectTransform.m_AnchoredPosition.y = 0:-6
+   Backround RectTransform.m_SizeDelta.y = 0:-22
+   Border RectTransform.m_AnchoredPosition.y = 0:-6
+   Border RectTransform.m_SizeDelta.y = 0:-12
+   Icon RectTransform.m_AnchoredPosition.y = 0:-81
+   Text (TMP) RectTransform.m_AnchoredPosition.y = 0:64
+   Backround Image.m_Color.a = 0:0.9
+   Border Image.m_Sprite = 0:Rectangle 113
+ clip Disabled len=0 loop=True
+    CanvasGroup.m_Alpha = 0:0.7

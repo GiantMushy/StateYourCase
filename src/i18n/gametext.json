@@ -1,0 +1,334 @@
+{
+  "Menu_play": {
+    "en": "Menu",
+    "is": "Menu"
+  },
+  "Menu_settings": {
+    "en": "Settings",
+    "is": "Stillingar"
+  },
+  "Menu_rulebook": {
+    "en": "Rulebook",
+    "is": "Leiðbeiningar"
+  },
+  "Menu_feedback": {
+    "en": "Give us Feedback",
+    "is": "Senda Athugasemd"
+  },
+  "Menu_data_privacy_page": {
+    "en": "Open Data Privacy Page",
+    "is": "Öryggi og Persónuvernd"
+  },
+  "New_game": {
+    "en": "New Game",
+    "is": "Nýr Leikur"
+  },
+  "Pack_Basic": {
+    "en": "Classic",
+    "is": "Klassískt"
+  },
+  "Pack_Icelandic": {
+    "en": "Icelandic",
+    "is": "Ísland"
+  },
+  "Pack_PopCulture": {
+    "en": "Pop Culture",
+    "is": "Popp Menning"
+  },
+  "Pack_Political": {
+    "en": "Political",
+    "is": "Pólítískt"
+  },
+  "Pack_18": {
+    "en": "18+",
+    "is": "18+"
+  },
+  "Local_text": {
+    "en": "Local",
+    "is": "Staðbundinn"
+  },
+  "Local_info": {
+    "en": "Only 1 phone",
+    "is": "Aðeins 1 sími"
+  },
+  "Online_text": {
+    "en": "Online",
+    "is": "Netleikur"
+  },
+  "Online_info": {
+    "en": "Everyone has their own phone",
+    "is": "Allir hafa sinn síma"
+  },
+  "Name_of_players": {
+    "en": "Enter the names of the players",
+    "is": "Nafn á spilurunum"
+  },
+  "Next": {
+    "en": "Next",
+    "is": "Næst"
+  },
+  "Discussion_moderator": {
+    "en": "Discussion Moderator",
+    "is": "Þingstjóri"
+  },
+  "Genric_name": {
+    "en": "Generic Name",
+    "is": "Alment Nafn"
+  },
+  "Choose_a_bill": {
+    "en": "Pick a topic and announce it - or let the group decide!",
+    "is": "Veldu frumvarp eða veljið saman frumvarp sem leikmenn munu ræða um"
+  },
+  "Versus": {
+    "en": "Versus",
+    "is": "Einvígi"
+  },
+  "Scenario": {
+    "en": "Scenario",
+    "is": "Aðstæður"
+  },
+  "Select": {
+    "en": "Select",
+    "is": "Velja"
+  },
+  "Comedy": {
+    "en": "Comedy",
+    "is": "Gamanleikur"
+  },
+  "Creativity": {
+    "en": "Creativity",
+    "is": "Sköpunargáfu"
+  },
+  "On_topic": {
+    "en": "On Topic",
+    "is": "EfnisViðeigandi"
+  },
+  "Factual": {
+    "en": "Factual",
+    "is": "Staðreyndir"
+  },
+  "Enthusiasm": {
+    "en": "Enthusiasm",
+    "is": "Áhugasemi"
+  },
+  "Metrics_instructions": {
+    "en": "You can choose whether or not you share this with the players",
+    "is": "Þú getur valið hvort þú deilir þessu með spilurunum eða ekki"
+  },
+  "Speech": {
+    "en": "Speech",
+    "is": "Ræða"
+  },
+  "Betryal": {
+    "en": "Betryal",
+    "is": "Svik"
+  },
+  "Interuption": {
+    "en": "Interuption",
+    "is": "Trufflun"
+  },
+  "Im_Done": {
+    "en": "I'm done!",
+    "is": "Búin!"
+  },
+  "I_am_name": {
+    "en": "I am [name]",
+    "is": "Ég er [nafn]"
+  },
+  "Host": {
+    "en": "Host",
+    "is": "Hýsa"
+  },
+  "Join": {
+    "en": "Join",
+    "is": "Tengjast"
+  },
+  "Room Number": {
+    "en": "Room Number",
+    "is": "Lotukóði"
+  },
+  "Waiting for players": {
+    "en": "Waiting for players",
+    "is": "Bíða eftir leikmönnum"
+  },
+  "Enter your Room Key": {
+    "en": "Enter Your Room Key",
+    "is": "Sláðu inn Lotukóða"
+  },
+  "Rulebook Page": {
+    "en": "This is the Rulebook Page\n",
+    "is": "Hérna eru regglurnar"
+  },
+  "Start": {
+    "en": "Start",
+    "is": "Byrja"
+  },
+  "Shuffle": {
+    "en": "Shuffle",
+    "is": "Stokka"
+  },
+  "Hold or tap to reveal your Corruption": {
+    "en": "Hold or tap to reveal your Corruption",
+    "is": "Haltu eða smelltu til að sjá Spillinguna þína\n"
+  },
+  "im done!": {
+    "en": "I'm done!",
+    "is": "Búin!"
+  },
+  "Topic Description": {
+    "en": "Topic Description",
+    "is": "Umræðuefni Lýsing"
+  },
+  "Group 1": {
+    "en": "Group 1",
+    "is": "Hópur 1"
+  },
+  "Group 2": {
+    "en": "Group 2",
+    "is": "Hópur 2"
+  },
+  "Group 3": {
+    "en": "Group 3",
+    "is": "Hópur 3"
+  },
+  "Group 4": {
+    "en": "Group 4",
+    "is": "Hópur 4"
+  },
+  "Group 5": {
+    "en": "Group 5",
+    "is": "Hópur 5"
+  },
+  "Group 6": {
+    "en": "Group 6",
+    "is": "Hópur 6"
+  },
+  "For": {
+    "en": "FOR",
+    "is": "MEÐ"
+  },
+  "Against": {
+    "en": "AGAINST",
+    "is": "Á MÓTI"
+  },
+  "Accusation!": {
+    "en": "Accusation!",
+    "is": "Ásökun"
+  },
+  "First Accusation Directions": {
+    "en": "This is where players can accuse each other of Corruption. If they guess correctly, they steal the corruption points\n\nClick on the player that is accusing",
+    "is": "Þetta er þar sem leikmenn geta sakað hver annan um spillingu. Ef þeir giska rétt, stela þeir spillingar stigunum\n\nSmelltu á leikmanninn sem ásakar"
+  },
+  "Second Accusation Directions": {
+    "en": "Someone is Accusing! \nSelect the player they are accusing ONLY if the guess is correct. If the guess is incorrect or not specific enough, click the “Incorrect” Button",
+    "is": "Einhver er að ásaka!\nVeldu leikmanninn sem hann ásakar AÐEINS ef ágiskunin er rétt. Ef ágiskunin er röng eða ekki nógu nákvæm, smelltu á “Vitlaust” hnappinn"
+  },
+  "Incorrect": {
+    "en": "Incorrect",
+    "is": "Vitlaust"
+  },
+  "Active Objectives": {
+    "en": "Active Objectives",
+    "is": "Virk Verkefni"
+  },
+  "Inactive Objectives": {
+    "en": "Inactive Objectives",
+    "is": "Óvirk Verkefni"
+  },
+  "Loading...": {
+    "en": "Loading...",
+    "is": "Hleður..."
+  },
+  "Next Round!": {
+    "en": "Next Round!",
+    "is": "Næsti Umferð"
+  },
+  "Your Name...": {
+    "en": "Your Name...",
+    "is": "Þitt Nafn..."
+  },
+  "Name": {
+    "en": "Name",
+    "is": "Nafn"
+  },
+  "Key": {
+    "en": "Key",
+    "is": "Lykill"
+  },
+  "Menu_Languages": {
+    "en": "Languages",
+    "is": "Tungumál"
+  },
+  "Menu_Sound": {
+    "en": "Sound",
+    "is": "Hljóð"
+  },
+  "New_game_confirmation_message": {
+    "en": "Are you sure?",
+    "is": "Ertu viss?"
+  },
+  "New_game_confirmation_answer": {
+    "en": "Yes!",
+    "is": "Já!"
+  },
+  "Language_EN": {
+    "en": "English",
+    "is": "Enska"
+  },
+  "Language_IS": {
+    "en": "Icelandic",
+    "is": "Íslenska"
+  },
+  "Language_DE": {
+    "en": "German",
+    "is": "Þýska"
+  },
+  "Language_ES": {
+    "en": "Spanish",
+    "is": "Spænska"
+  },
+  "Points_abbreviated": {
+    "en": "Pts",
+    "is": "Stg"
+  },
+  "Points_Full": {
+    "en": "Points",
+    "is": "Stig"
+  },
+  "Enter_Name_Directions": {
+    "en": "Enter the names of the players\nMin: 3     Max: 8",
+    "is": "Sláðu inn nöfn leikmanna\nMin: 3     Max: 8"
+  },
+  "Enter_Name": {
+    "en": "Enter name...",
+    "is": "Sláðu inn nafn..."
+  },
+  "Pack_Description_Classic": {
+    "en": "The original mix. Broad debates and corruptions for any party!\nStart here if you’re not sure",
+    "is": "Upprunulega Safnið! Almenn og örugg Umræðuefni og Spillingar, fullkomið fyrir alla hópa. Byrjið hér ef þetta er fyrsti leikurinn :)"
+  },
+  "Pack_Description_Iceland": {
+    "en": "For Icelandic eyes only!",
+    "is": "Einungis fyrir okkur Íslendinga!"
+  },
+  "Pack_Description_PopCulture": {
+    "en": "Which singer sings the best? Who's the most influentual influencer? Who can reference the best movie quotes?",
+    "is": "Hvaða sögnvari er sú besti? Hvaða áhryfavaldur hefur mest áhryf? "
+  },
+  "Pack_Description_Political": {
+    "en": "Get into heated debates about real-world political topics. Choose your friends wisely, try not to lose them!",
+    "is": "Alvörunni pólitsíkt efni. Passið vel uppá hvern þið spilið með!"
+  },
+  "Pack_Description_EighteenPlus": {
+    "en": "Naughty Naughty",
+    "is": "Hush Hush"
+  },
+  "Name_Input_Error": {
+    "en": "No duplicate names allowed!",
+    "is": "Bannað að hafa eins nöfn!"
+  },
+  "Correct": {
+    "en": "Correct",
+    "is": "Rétt"
+  }
+}

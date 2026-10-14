@@ -1,0 +1,28 @@
+/* TMP_InputField look-alike (see TmpInput.tsx). Placeholder colour comes from --tmp-ph. */
+.tmp-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  font-family: Iceland, sans-serif;
+  caret-color: #323232;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.tmp-input::placeholder {
+  color: var(--tmp-ph);
+  font-style: italic;
+  opacity: 1;
+}
+
+/* TMP_InputField selectionColor #A8CEFFC0 */
+.tmp-input::selection {
+  background: rgba(168, 206, 255, 0.753);
+}
