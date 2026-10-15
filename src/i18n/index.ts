@@ -22,6 +22,13 @@ const CODE_STRINGS = {
   For: { en: 'For', is: 'For' },
   Against: { en: 'Against', is: 'Against' },
   NoTopic: { en: 'No topic available', is: 'No topic available' },
+  // Settings (not in Unity).
+  Setting_metrics: { en: 'Metrics', is: 'Mælikvarðar' },
+  Setting_secret_obj: { en: 'Secret Obj', is: 'Leyniverk' },
+  Setting_dm_shuffle: { en: 'DM Shuffle', is: 'DM Stokkun' },
+  Settings_locked: { en: 'Locked until the game ends', is: 'Læst þar til leiknum lýkur' },
+  Settings_dm_shuffle_teams: { en: 'DM Shuffle needs every team to be one player', is: 'DM Stokkun krefst eins leikmanns í hverju liði' },
+  DM_shuffle_drop_error: { en: 'DM Shuffle is on: teams can only have one player', is: 'DM Stokkun er á: aðeins einn leikmaður í hverju liði' },
 } satisfies Record<string, Entry>
 
 const TABLE: Record<string, Entry> = { ...(gametext as Record<string, Entry>), ...CODE_STRINGS }

@@ -135,3 +135,31 @@ describe('topics', () => {
     expect(M.getRandomTopic(g, 'Versus', 2)).not.toBeNull()
   })
 })
+
+describe('DM shuffle', () => {
+  const soloGame = () => {
+    const g = M.createGameData(loadTopics(), loadCorruptions())
+    ;['Anna', 'Bjarki', 'Thor', 'Gunna'].forEach((n, i) => M.addPlayer(g, i, n))
+    g.dmIdOverride = 0
+    for (const id of [1, 2, 3]) g.players[id].groupId = M.createGroup(g, g.players[id].name).id
+    return g
+  }
+
+  it('never picks the current DM', () => {
+    const g = soloGame()
+    for (const r of [0, 0.5, 0.99]) expect(M.pickNextDm(g, () => r)).not.toBe(0)
+  })
+
+  it('old DM takes over the new DM’s team, renaming a team named after its player', () => {
+    const g = soloGame()
+    g.groups[1].name = 'The Owls'
+    M.swapDm(g, 2)
+    expect(M.dmId(g)).toBe(2)
+    expect(g.players[2].groupId).toBe(-1)
+    expect(g.players[0].groupId).toBe(1)
+    expect(g.groups[1].name).toBe('The Owls')
+    M.swapDm(g, 1)
+    expect(g.players[2].groupId).toBe(0)
+    expect(g.groups[0].name).toBe('Thor')
+  })
+})

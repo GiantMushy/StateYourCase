@@ -70,3 +70,14 @@ body {
 .scroll-y::-webkit-scrollbar {
   display: none;
 }
+
+/* Short pop-in for transient messages (e.g. the DM Shuffle drop refusal). */
+.toast-pop {
+  animation: toast-pop 2.5s ease-out both;
+}
+@keyframes toast-pop {
+  0% { opacity: 0; translate: 0 20px; }
+  8% { opacity: 1; translate: 0 0; }
+  85% { opacity: 1; }
+  100% { opacity: 0; }
+}

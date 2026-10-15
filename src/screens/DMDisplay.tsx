@@ -50,6 +50,7 @@ export function DMDisplay() {
   const lang = useLang()
   const game = useGame((s) => s.game)
   const startVotingSequence = useGame((s) => s.startVotingSequence)
+  const secretObjectives = useGame((s) => s.settings.secretObjectives)
 
   // OnEnable snapshot: group turn order by id.
   const [groups] = useState(() => M.groupList(useGame.getState().game))
@@ -214,17 +215,20 @@ export function DMDisplay() {
 
           <TimerPanel flow size={[850, 354.69]} time={time} state={timerState} onPlay={onPlay} onStop={onStop} onPause={onPause} />
 
-          {/* Objectives: wider than the viewport; the off-screen panels are clipped by it. */}
-          <Rect flow size={[1564, 1949.27]}>
-            <ObjectiveTabs a={[0, 1, 0, 1]} pos={[782, -118.21]} size={[865.48, 216.42]} selected={tab} onTabChange={setTab} />
-            <Rect a={[0, 1, 0, 1]} pos={[782, -1119]} size={[981, 1700]}>
-              <Rect a={STRETCH} pos={[trackX, 0]}>
-                <AccusationPanel a={[0, 1, 0, 1]} pos={[-535, -686]} size={[800, 1400]} />
-                <ObjectiveColumn x={465} entries={active} showEmptyCard />
-                <ObjectiveColumn x={1465} entries={inactive} />
+          {/* Objectives: wider than the viewport; the off-screen panels are clipped by it.
+              Hidden entirely (with accusations) when Secret Objectives are off. */}
+          {secretObjectives && (
+            <Rect flow size={[1564, 1949.27]}>
+              <ObjectiveTabs a={[0, 1, 0, 1]} pos={[782, -118.21]} size={[865.48, 216.42]} selected={tab} onTabChange={setTab} />
+              <Rect a={[0, 1, 0, 1]} pos={[782, -1119]} size={[981, 1700]}>
+                <Rect a={STRETCH} pos={[trackX, 0]}>
+                  <AccusationPanel a={[0, 1, 0, 1]} pos={[-535, -686]} size={[800, 1400]} />
+                  <ObjectiveColumn x={465} entries={active} showEmptyCard />
+                  <ObjectiveColumn x={1465} entries={inactive} />
+                </Rect>
               </Rect>
             </Rect>
-          </Rect>
+          )}
         </div>
       </div>
 

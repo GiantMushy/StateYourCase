@@ -30,6 +30,17 @@ export interface TopicChoice {
   shufflesRemaining: number
 }
 
+/** Menu → Settings toggles. Not in Unity; they persist across games. */
+export interface Settings {
+  metrics: boolean
+  secretObjectives: boolean
+  dmShuffle: boolean
+}
+export type SettingKey = keyof Settings
+
+/** True when every team in the layout has at most one player (required for DM Shuffle). */
+export const isSoloLayout = (layout: GroupsLayout | null) => !layout || layout.groups.every((g) => g.playerIds.length <= 1)
+
 export interface Transition {
   id: number
   text: string
@@ -47,6 +58,9 @@ interface Store {
   gameMode: GameMode
   ownedPacks: Pack[]
   game: M.GameData
+  settings: Settings
+  /** Settings are locked from leaving Assign Groups until the game is over or a new game starts. */
+  settingsLocked: boolean
 
   nextPlayerId: number
   groupsLayout: GroupsLayout | null
@@ -64,6 +78,8 @@ interface Store {
   setBgColor: (color: string) => void
   setLanguage: (l: Language) => void
   setGameMode: (m: GameMode) => void
+  /** Returns false when the change is refused (locked, or DM Shuffle with a multi-player team). */
+  setSetting: (key: SettingKey, on: boolean) => boolean
   /** Escape hatch for screens that mutate game data directly (always via model.ts helpers). */
   update: (fn: (g: M.GameData) => void) => void
 
@@ -100,6 +116,18 @@ const emptyTopicChoice = (): TopicChoice => ({
   shufflesRemaining: CONFIG.startingShuffles,
 })
 
+/** The committed groups as an Assign Groups layout (after a DM Shuffle swap), keeping custom names. */
+function layoutOf(g: M.GameData, prev: GroupsLayout | null): GroupsLayout {
+  return {
+    dmPlayerId: M.dmId(g),
+    groups: M.groupList(g).map((grp, i) => ({
+      playerIds: M.playersInGroup(g, grp.id).map((p) => p.id),
+      customName: prev?.groups[i]?.customName ?? '',
+    })),
+    unassigned: [],
+  }
+}
+
 let transitionId = 0
 
 export const useGame = create<Store>()(
@@ -116,6 +144,12 @@ export const useGame = create<Store>()(
       get().startMutex(dmPlayer().name, 'I am ', 'Voting')
     }
 
+    /** Secret Objectives off: nobody is dealt a corruption. */
+    const dealCorruptions = (s: Store) => {
+      if (s.settings.secretObjectives) M.assignCorruptionsToPlayers(s.game)
+      else M.clearPlayerCorruptions(s.game)
+    }
+
     return {
       screen: 'LocalVsOnline',
       screenVisit: 0,
@@ -125,6 +159,8 @@ export const useGame = create<Store>()(
       gameMode: 'Local',
       ownedPacks: ['Default'],
       game: M.createGameData(loadTopics(), loadCorruptions()),
+      settings: { metrics: true, secretObjectives: true, dmShuffle: false },
+      settingsLocked: false,
 
       nextPlayerId: 0,
       groupsLayout: null,
@@ -142,11 +178,20 @@ export const useGame = create<Store>()(
           if (s.menuOpen) return
           s.screen = screen
           s.screenVisit++
+          // The final scoreboard ends the game: settings may change again.
+          if (screen === 'Scoreboard' && M.isGameOver(s.game)) s.settingsLocked = false
         }),
       setMenuOpen: (open) => set((s) => void (s.menuOpen = open)),
       setBgColor: (bgColor) => set((s) => void (s.bgColor = bgColor)),
       setLanguage: (language) => set((s) => void (s.language = language)),
       setGameMode: (gameMode) => set((s) => void (s.gameMode = gameMode)),
+      setSetting: (key, on) => {
+        const { settingsLocked, groupsLayout } = get()
+        if (settingsLocked) return false
+        if (key === 'dmShuffle' && on && !isSoloLayout(groupsLayout)) return false
+        set((s) => void (s.settings[key] = on))
+        return true
+      },
       update: (fn) => set((s) => fn(s.game)),
 
       selectPack: (pack) =>
@@ -180,7 +225,8 @@ export const useGame = create<Store>()(
             for (const pid of grp.playerIds) g.players[pid].groupId = group.id
           })
           s.groupsLayout = layout
-          M.assignCorruptionsToPlayers(g)
+          s.settingsLocked = true
+          dealCorruptions(s)
         })
         get().startMutex(dmPlayer().name, 'I am ', 'TopicSelection')
       },
@@ -209,7 +255,7 @@ export const useGame = create<Store>()(
         const topic = t.versusSelected ? t.versus : t.scenario
         if (!topic) return
         set((s) => void (s.game.currentTopic = topic))
-        get().setScreen('MetricSelection')
+        get().setScreen(get().settings.metrics ? 'MetricSelection' : 'AssignPositions')
       },
 
       setMetrics: (metrics) => set((s) => void (s.game.selectedMetrics = metrics)),
@@ -225,7 +271,8 @@ export const useGame = create<Store>()(
 
       startCorruptionSequence: () => {
         const g = get().game
-        const order = M.nonDmPlayers(g).map((p) => p.id)
+        // Secret Objectives off: no handout, straight to the DM.
+        const order = get().settings.secretObjectives ? M.nonDmPlayers(g).map((p) => p.id) : []
         set((s) => {
           s.corruptionOrder = order
           s.corruptionIndex = 0
@@ -248,8 +295,9 @@ export const useGame = create<Store>()(
           s.votingGroupIndex = 0
           s.isDMMetricVoting = false
         })
-        // Two teams would only vote for each other, so skip straight to the DM's vote.
-        if (groups.length <= 2) return startDMMetricVote()
+        // Two teams would only vote for each other, so skip straight to the DM's vote
+        // (or, with Metrics off, to the scoreboard: there is no vote left to cast).
+        if (groups.length <= 2) return get().settings.metrics ? startDMMetricVote() : get().setScreen('Scoreboard')
         get().startMutex(groups[0].name, 'We are ', 'Voting')
       },
 
@@ -264,7 +312,8 @@ export const useGame = create<Store>()(
           get().startMutex(game.groups[votingGroupOrder[votingGroupIndex]].name, 'We are ', 'Voting')
         } else {
           set((s) => M.finalizeGroupVoting(s.game))
-          startDMMetricVote()
+          if (get().settings.metrics) startDMMetricVote()
+          else get().setScreen('Scoreboard')
         }
       },
       submitMetricBallot: (slotGroupIds) => {
@@ -283,9 +332,15 @@ export const useGame = create<Store>()(
             s.game.currentRound++
             s.game.selectedMetrics = []
             M.resetAccusations(s.game)
-            M.assignCorruptionsToPlayers(s.game)
+            if (s.settings.dmShuffle) {
+              M.swapDm(s.game, M.pickNextDm(s.game))
+              s.groupsLayout = layoutOf(s.game, s.groupsLayout)
+            }
+            dealCorruptions(s)
           })
-          get().setScreen('TopicSelection')
+          // A new DM has to be handed the phone first.
+          if (get().settings.dmShuffle) get().startMutex(dmPlayer().name, 'I am ', 'TopicSelection')
+          else get().setScreen('TopicSelection')
         } else {
           get().setScreen('Scoreboard')
         }
@@ -306,6 +361,7 @@ export const useGame = create<Store>()(
           s.groupsLayout = null
           s.topicChoice = emptyTopicChoice()
           s.gameMode = 'Local'
+          s.settingsLocked = false
         })
         get().setScreen('PackSelection')
       },
