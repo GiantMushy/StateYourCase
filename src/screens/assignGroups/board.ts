@@ -76,6 +76,20 @@ export function soloBoard(board: Board, ids: number[]): Board {
   return fresh(dm, ids.filter((id) => id !== dm).sort((a, b) => a - b).map((id) => [id]))
 }
 
+/** Shuffle with DM Shuffle on: random DM, everyone else solo in random order. */
+export function shuffleSoloBoard(ids: number[], rng: () => number = Math.random): Board {
+  if (!ids.length) return emptyBoard()
+  const dm = ids[Math.floor(rng() * ids.length)]
+  return fresh(dm, shuffled(ids.filter((id) => id !== dm), rng).map((id) => [id]))
+}
+
+/** DM Shuffle guard: true when dropping `pid` on `target` would put two players in one team. */
+export function wouldMakeTeam(b: Board, pid: number, target: DropId | null): boolean {
+  if (!target?.startsWith('g')) return false
+  const group = b.groups.find((g) => `g${g.key}` === target)
+  return !!group && group.playerIds.some((id) => id !== pid)
+}
+
 /**
  * RebuildScreenPreservingLayout (later visits): keeps the DM, group membership and custom
  * names; removed players are dropped and new players land in the unassigned area. Like

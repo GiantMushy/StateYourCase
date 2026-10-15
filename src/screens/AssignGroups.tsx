@@ -23,8 +23,10 @@ import {
   isLayoutValid,
   rebuildBoard,
   shuffleBoard,
+  shuffleSoloBoard,
   soloBoard,
   toLayout,
+  wouldMakeTeam,
   type Board,
   type DropId,
 } from './assignGroups/board'
@@ -35,6 +37,8 @@ const CARD_SIZE = [815.59, 134.12] as const
 const HIGHLIGHT = '#CCF2FFFF'
 const FRAME_COLOR = '#282828FF'
 const GROUP_NAME_LIMIT = 12
+/** How long the DM Shuffle refusal message stays up. */
+const DROP_ERROR_MS = 2500
 
 const playerIds = () => Object.keys(useGame.getState().game.players).map(Number)
 
@@ -44,13 +48,17 @@ export function AssignGroups() {
   const setScreen = useGame((s) => s.setScreen)
   const setGroupsLayout = useGame((s) => s.setGroupsLayout)
   const commitGroups = useGame((s) => s.commitGroups)
+  const dmShuffle = useGame((s) => s.settings.dmShuffle)
   const header = useLocalized('Assign Groups', 'Úthluta Hópum')
   const label = (n: number) => t('GroupN', n)
 
   // OnEnable: first visit builds a fresh layout, later visits rebuild the saved one.
   const [board, setBoard] = useState<Board>(() => {
     const saved = useGame.getState().groupsLayout
-    return saved ? rebuildBoard(saved, playerIds()) : buildBoard(playerIds())
+    if (saved) return rebuildBoard(saved, playerIds())
+    // DM Shuffle needs solo teams, so the first layout starts that way.
+    const built = buildBoard(playerIds())
+    return useGame.getState().settings.dmShuffle ? soloBoard(built, playerIds()) : built
   })
   useEffect(() => setGroupsLayout(toLayout(board)), [board, setGroupsLayout])
 
@@ -63,6 +71,14 @@ export function AssignGroups() {
     viewport.current?.scrollTo({ top: 0 })
   }
 
+  // DM Shuffle refusal: a short message after a drop that would have made a multi-player team.
+  const [dropError, setDropError] = useState(0)
+  useEffect(() => {
+    if (!dropError) return
+    const id = setTimeout(() => setDropError(0), DROP_ERROR_MS)
+    return () => clearTimeout(id)
+  }, [dropError])
+
   // ---- drag & drop (DragHandle → OnCardDragUpdate / OnCardDrop)
   const [drag, setDrag] = useState<{ pid: number; x: number; y: number } | null>(null)
   const [hover, setHover] = useState<string | null>(null)
@@ -74,7 +90,10 @@ export function AssignGroups() {
       setHover(dropTargetAt(p))
     },
     onDragEnd: (p: DragPoint) => {
-      setBoard((b) => dropCard(b, pid, dropTargetAt(p) as DropId | null))
+      const target = dropTargetAt(p) as DropId | null
+      // With DM Shuffle on the card goes back where it came from.
+      if (dmShuffle && wouldMakeTeam(board, pid, target)) setDropError(Date.now())
+      else setBoard((b) => dropCard(b, pid, target))
       setDrag(null)
       setHover(null)
     },
@@ -115,7 +134,7 @@ export function AssignGroups() {
 
             {/* Shuffle Buttons: HorizontalLayoutGroup spacing 40, UpperCenter (labels aren't localized in Unity) */}
             <div style={{ width: 800, height: 150.83, flex: 'none', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', gap: 40 }}>
-              <SmallButton label="Shuffle " onClick={() => rebuild(shuffleBoard(playerIds()))} />
+              <SmallButton label="Shuffle " onClick={() => rebuild(dmShuffle ? shuffleSoloBoard(playerIds()) : shuffleBoard(playerIds()))} />
               <SmallButton label="All Solo" onClick={() => rebuild(soloBoard(board, playerIds()))} />
             </div>
 
@@ -155,6 +174,16 @@ export function AssignGroups() {
         </div>
 
         <Button3D pos={[0, -750]} size={[750, 200]} label={t('Start')} disabled={!canStart} onClick={start} />
+
+        {dropError > 0 && (
+          <Rect key={dropError} pos={[0, -555]} size={[880, 150]} className="toast-pop" style={{ pointerEvents: 'none' }}>
+            <Img sprite="Button Background Default" color="#424242FF" sliced spritePpu={180} />
+            <Img sprite="Button Border Pressed Default" color="#282828FF" sliced spritePpu={180} />
+            <Text fontSize={58} auto={[36, 58]} color="#FFB0B0FF" margin={[45, 0, 45, 8]}>
+              {t('DM_shuffle_drop_error')}
+            </Text>
+          </Rect>
+        )}
 
         {drag && (
           <DragGhost x={drag.x} y={drag.y} w={CARD_SIZE[0]} h={CARD_SIZE[1]} opacity={0.7}>

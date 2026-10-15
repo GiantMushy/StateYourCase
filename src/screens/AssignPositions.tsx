@@ -24,6 +24,7 @@ export function AssignPositions() {
   const update = useGame((s) => s.update)
   const setScreen = useGame((s) => s.setScreen)
   const startCorruptionSequence = useGame((s) => s.startCorruptionSequence)
+  const metricsOn = useGame((s) => s.settings.metrics)
   const { height } = useStage()
 
   // OnEnable → RandomlyAssignPositions (groups ordered by id).
@@ -61,7 +62,7 @@ export function AssignPositions() {
           </Rect>
 
           {/* Unity has it outside the scroll view; here it scrolls with the content. */}
-          <BackButton onClick={() => setScreen('MetricSelection')} />
+          <BackButton onClick={() => setScreen(metricsOn ? 'MetricSelection' : 'TopicSelection')} />
         </div>
       </div>
 

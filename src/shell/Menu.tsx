@@ -1,8 +1,9 @@
-// Slide-out side menu (Unity MenuController): tab button in the top-right corner, three
-// accordion dropdowns (New Game confirm, Language, Rulebook) and two external links.
+// Slide-out side menu (Unity MenuController): tab button in the top-right corner, four
+// accordion dropdowns (New Game confirm, Language, Settings, Rulebook) and two external links.
+// Settings is not in Unity: a list of game-rule toggles, locked while a game is running.
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
-import { useGame } from '../game/store'
-import { useT } from '../i18n'
+import { useGame, type SettingKey } from '../game/store'
+import { useT, type StringKey } from '../i18n'
 import { lerpStep, tween, easeInCubic, easeOutCubic, useFrame } from '../ui/anim'
 import { Img } from '../ui/Img'
 import { Rect, STRETCH } from '../ui/Rect'
@@ -21,8 +22,16 @@ const FEEDBACK_URL = 'https://giantmushy.github.io/AngryPuffinGamesSite/'
 const PRIVACY_URL =
   'https://doc-hosting.flycricket.io/state-your-case-privacy-policy/32dfcf16-2c06-4560-8818-8cb83c3af5cc/privacy'
 
-type DropdownId = 'newGame' | 'language' | 'rulebook'
-const HEIGHTS: Record<DropdownId, number> = { newGame: 292.75, language: 371.8, rulebook: 750 }
+type DropdownId = 'newGame' | 'language' | 'settings' | 'rulebook'
+const HEIGHTS: Record<DropdownId, number> = { newGame: 292.75, language: 371.8, settings: 640, rulebook: 750 }
+
+const SETTINGS: { key: SettingKey; label: StringKey; icon: string }[] = [
+  { key: 'metrics', label: 'Setting_metrics', icon: 'metrics_icon' },
+  { key: 'secretObjectives', label: 'Setting_secret_obj', icon: 'secobj_icon_white_0' },
+  { key: 'dmShuffle', label: 'Setting_dm_shuffle', icon: 'dice_icon' },
+]
+/** How long a refused DM Shuffle toggle shows its reason. */
+const SETTING_ERROR_SECONDS = 3
 
 /** Animated accordion body: grows open with ease-out, closes with ease-in while scrolling its content up. */
 function useDropdown(open: boolean, fullHeight: number) {
@@ -241,6 +250,12 @@ export function Menu() {
             <RaiseTab height={50} onClick={() => toggle('language')} />
           </DropdownBody>
 
+          <MenuRow label={t('Menu_settings')} icon="settings_icon" iconSize={80} onClick={() => toggle('settings')} />
+          <DropdownBody id="settings" open={dropdown === 'settings'}>
+            <SettingsList />
+            <RaiseTab height={50} onClick={() => toggle('settings')} />
+          </DropdownBody>
+
           <MenuRow label={t('Menu_rulebook')} icon="gavel_icon" iconSize={90} onClick={() => toggle('rulebook')} />
           <DropdownBody id="rulebook" open={dropdown === 'rulebook'} innerInset={0} anchorTop>
             <div className="scroll-y" style={{ position: 'absolute', inset: 0 }}>
@@ -279,5 +294,64 @@ function LinkRow({ label, icon, height, textHeight, textPos, iconPos, margin, on
       <Img a={[0, 0, 1, 0]} pos={[75, 1]} size={[-250, 2]} color="#FFFFFFFF" />
       {icon && iconPos && <Img pos={iconPos} size={[90, 90]} sprite={icon} />}
     </TintButton>
+  )
+}
+
+/** Settings dropdown: one row per toggle (icon, label, switch) and a status line below. */
+function SettingsList() {
+  const t = useT()
+  const settings = useGame((s) => s.settings)
+  const locked = useGame((s) => s.settingsLocked)
+  const setSetting = useGame((s) => s.setSetting)
+  const [error, setError] = useState(false)
+
+  useEffect(() => {
+    if (!error) return
+    const id = setTimeout(() => setError(false), SETTING_ERROR_SECONDS * 1000)
+    return () => clearTimeout(id)
+  }, [error])
+
+  const flip = (key: SettingKey) => {
+    const ok = setSetting(key, !settings[key])
+    if (!ok && key === 'dmShuffle') setError(true)
+  }
+
+  const note = locked ? t('Settings_locked') : error ? t('Settings_dm_shuffle_teams') : ''
+  return (
+    <Rect a={STRETCH} pos={[0, 25]} size={[0, -50]}>
+      <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 40, gap: 24 }}>
+        {SETTINGS.map(({ key, label, icon }) => (
+          <TintButton
+            key={key}
+            flow
+            size={[583.53, 112.62]}
+            image={{ sprite: 'Button Background Sharp', color: '#FFFFFF0A', sliced: true, ppu: 1, spritePpu: 180 }}
+            disabled={locked}
+            onClick={() => flip(key)}
+            style={{ opacity: locked ? 0.45 : 1, transition: 'opacity 0.15s linear' }}
+          >
+            <Img a={[0, 0.5, 0, 0.5]} pos={[45, 0]} size={[72, 72]} sprite={icon} preserve />
+            <Text fontSize={85} auto={[50, 85]} color="#F5F5F5FF" align="Left" margin={[105, 0, 185, 6]}>
+              {t(label)}
+            </Text>
+            <Switch a={[1, 0.5, 1, 0.5]} pos={[-80, 0]} on={settings[key]} />
+          </TintButton>
+        ))}
+        <Text flow size={[583.53, 110]} fontSize={48} auto={[30, 48]} color={locked ? '#BDBDBDFF' : '#FF8A8AFF'}>
+          {note}
+        </Text>
+      </div>
+    </Rect>
+  )
+}
+
+/** On/off pill: teal track with the knob right when on, dark track with the knob left when off. */
+function Switch({ a, pos, on }: { a: readonly [number, number, number, number]; pos: readonly [number, number]; on: boolean }) {
+  const anim = 'all 0.15s ease-out'
+  return (
+    <Rect a={a} pos={[pos[0], pos[1]]} size={[140, 72]}>
+      <div style={{ position: 'absolute', inset: 0, borderRadius: 36, background: on ? '#48CFCB' : '#282828', boxShadow: 'inset 0 0 0 4px #1E1E1E', transition: anim }} />
+      <div style={{ position: 'absolute', top: 8, left: on ? 76 : 8, width: 56, height: 56, borderRadius: 28, background: '#F5F5F5', transition: anim }} />
+    </Rect>
   )
 }

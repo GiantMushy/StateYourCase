@@ -369,3 +369,34 @@ export function finalizeGroupVoting(g: GameData) {
   }
   for (const group of Object.values(g.groups)) group.votingPhasePoints = 0
 }
+
+// ---------------------------------------------------------------- DM shuffle
+
+/** Random new DM for DM Shuffle: any player other than the current DM. */
+export function pickNextDm(g: GameData, rng: Rng = Math.random): number {
+  const candidates = nonDmPlayers(g)
+  return candidates.length ? candidates[Math.floor(rng() * candidates.length)].id : dmId(g)
+}
+
+/**
+ * Hands the DM role to `newDmId` (a solo-team player). The old DM takes over that team; a team
+ * still named after its player is renamed after the old DM.
+ */
+export function swapDm(g: GameData, newDmId: number) {
+  const oldDmId = dmId(g)
+  const next = g.players[newDmId]
+  const old = g.players[oldDmId]
+  if (!next || !old || newDmId === oldDmId) return
+  const group = g.groups[next.groupId]
+  if (group) {
+    old.groupId = group.id
+    if (group.name === next.name) group.name = old.name
+  }
+  next.groupId = -1
+  g.dmIdOverride = newDmId
+}
+
+/** Secret Objectives off: nobody holds a corruption. */
+export function clearPlayerCorruptions(g: GameData) {
+  for (const p of Object.values(g.players)) p.corruptionId = -1
+}
