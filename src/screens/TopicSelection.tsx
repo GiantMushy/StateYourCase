@@ -83,12 +83,14 @@ export function TopicSelection() {
             <Text a={[0, 0, 0, 1]} pos={[360.96, 0]} size={[458.92, 0]} auto={[80, 120]} color="#FFFFFFFF" align="Left">
               {versus ? t('Versus') : t('Scenario')}
             </Text>
-            {/* Unity swaps only the sprite; the rect stays 75×75 for both icons. */}
-            <Img a={[0, 0.5, 0, 0.5]} pos={[81, 0]} size={[75, 75]} sprite={versus ? 'swords_icon' : 'theater_icon'} />
+            {/* Unity swaps only the sprite; the rect stays 75×75. The masks' artwork fills only the top
+                122/144 px of its sprite, so it's nudged down to look vertically centred. */}
+            <Img a={[0, 0.5, 0, 0.5]} pos={[81, versus ? 0 : -5.7]} size={[75, 75]} sprite={versus ? 'swords_icon' : 'theater_icon'} />
+            {/* Grown 8 right / 9 up from the Unity rect so it hugs the card's top-right corner. */}
             <ShuffleButton
               a={[1, 0, 1, 1]}
-              pos={[-129.04, -29.19]}
-              size={[241.09, 41.39]}
+              pos={[-125.04, -24.69]}
+              size={[249.09, 50.39]}
               count={choice.shufflesRemaining}
               disabled={choice.shufflesRemaining <= 0}
               onClick={shuffleTopics}

@@ -27,13 +27,20 @@ function splitAxis(total: number, a: number, b: number): [number, number, number
 }
 
 function draw(canvas: HTMLCanvasElement, sprite: string, color: string, unit: number) {
-  const rect = canvas.getBoundingClientRect()
+  // Resolution comes from the layout size (canvas units × stage zoom × DPR). Ancestor transforms
+  // may only raise it (e.g. hover scale), never lower it — a card mid-flip is squashed to zero
+  // width and would otherwise be drawn tiny and stretched back up.
   const layoutW = canvas.offsetWidth
   const layoutH = canvas.offsetHeight
-  if (!layoutW || !layoutH || !rect.width || !rect.height) return
+  if (!layoutW || !layoutH) return
+  const stage = canvas.closest<HTMLElement>('.stage')
+  const zoom = stage ? parseFloat(getComputedStyle(stage).zoom) || 1 : 1
+  const rect = canvas.getBoundingClientRect()
   const dpr = window.devicePixelRatio || 1
-  const W = Math.max(1, Math.round(rect.width * dpr))
-  const H = Math.max(1, Math.round(rect.height * dpr))
+  const scaleUpX = Math.max(1, rect.width / (layoutW * zoom))
+  const scaleUpY = Math.max(1, rect.height / (layoutH * zoom))
+  const W = Math.max(1, Math.round(layoutW * zoom * dpr * scaleUpX))
+  const H = Math.max(1, Math.round(layoutH * zoom * dpr * scaleUpY))
   const source = tintedSpriteSource(sprite, color)
   if (!source) return
   if (canvas.width !== W) canvas.width = W

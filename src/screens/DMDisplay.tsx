@@ -189,7 +189,7 @@ export function DMDisplay() {
                   {isVersus ? t('Versus') : t('Scenario')}
                 </Text>
               )}
-              <Img pos={[-199, 0]} size={[80, 80]} sprite={isVersus ? 'swords_icon' : 'theater_icon'} color="#F5F5F5FF" />
+              <Img pos={[-199, isVersus ? 0 : -6]} size={[80, 80]} sprite={isVersus ? 'swords_icon' : 'theater_icon'} color="#F5F5F5FF" />
             </Rect>
             <Rect a={STRETCH} pos={[0, -62.75]} size={[0, -125.51]}>
               <Text auto={[55, 75]} color="#414141FF" margin={[34.824, 0, 31.922, 10.157]}>

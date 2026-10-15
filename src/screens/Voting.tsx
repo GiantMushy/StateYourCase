@@ -12,6 +12,7 @@ import { useLocalized, useT } from '../i18n'
 import { Button3D } from '../ui/Button3D'
 import { DragGhost } from '../ui/DragLayer'
 import { toStagePoint, useDragGesture, type DragPoint } from '../ui/drag'
+import { EmptySlot } from '../ui/EmptySlot'
 import { Img } from '../ui/Img'
 import { spriteInfo } from '../ui/sprites'
 import { Rect, STRETCH, type V2 } from '../ui/Rect'
@@ -38,7 +39,6 @@ const CAPTION_MARGINS: (readonly [number, number, number, number])[] = [
 const CARD_COLORS = ['#F5F5F5FF', '#FFFFFFFF', '#FFFFFFFF', '#FFFFFFFF', '#FFFFFFFF', '#FFFFFFFF']
 /** VotingDragHandler.DisplacedTint and VotingSlotDropTarget.SlotHoverTint. */
 const DISPLACED_TINT = '#D1D1D1FF'
-const SLOT_HOVER_TINT = '#CCF2FFFF'
 /** Default ColorTint block on the card buttons. */
 const HIGHLIGHTED = 0xf5 / 255
 const PRESSED = 0xc8 / 255
@@ -211,7 +211,7 @@ export function Voting() {
           (pos, i) =>
             ballot.slots[i] === null && (
               <Rect key={i} data-drop={`slot:${i + 1}`} pos={pos} size={CARD_SIZE} scale={CARD_SCALE}>
-                <Img sprite="EmptyField" color={hoveredSlot === i ? SLOT_HOVER_TINT : '#FFFFFFFF'} />
+                <EmptySlot hovered={hoveredSlot === i} />
               </Rect>
             ),
         )}

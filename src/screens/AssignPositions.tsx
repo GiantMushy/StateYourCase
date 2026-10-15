@@ -99,8 +99,8 @@ function GroupCard({ group, players, positionLabel, onSwap }: { group: Group; pl
 }
 
 /**
- * Swap button. Unity had no transition here; it now presses down like the topic shuffle button
- * ("Button Shuffle" pressed clip: face and border drop 6 units, border sprite swaps).
+ * Swap button. Unity had no transition here; it now presses like the topic shuffle button: the
+ * dark frame stays put (so no gap opens against the card edge) while the face and icon sink.
  */
 function SwapButton({ onClick }: { onClick: () => void }) {
   const { visual, handlers } = useButton({ onClick })
@@ -108,9 +108,9 @@ function SwapButton({ onClick }: { onClick: () => void }) {
   const anim: CSSProperties = { transition: 'all 0.1s linear' }
   return (
     <Rect a={[1, 0, 1, 1]} pos={[-70.95, 0]} size={[141.91, 0]} {...handlers} style={{ cursor: 'pointer' }}>
-      <Img a={STRETCH} pos={down ? [0, -6] : [0, 0]} size={down ? [0, -12] : [0, 0]} sprite="Rectangle 96" color="#424242FF" sliced spritePpu={180} style={anim} />
-      <Img a={STRETCH} pos={down ? [0, -6] : [0, 0]} size={down ? [0, -12] : [0, 0]} sprite={down ? 'Rectangle 97' : 'Rectangle 122'} color="#282828FF" sliced spritePpu={180} style={anim} />
-      <Img pos={down ? [0, -7] : [0, 0]} size={[125, 101]} scale={0.6} sprite="swap_icon" style={anim} />
+      <Img a={STRETCH} pos={down ? [0, -6.642] : [0, 0]} size={down ? [0, -13.285] : [0, 0]} sprite="Rectangle 96" color="#424242FF" sliced spritePpu={180} style={anim} />
+      <Img a={STRETCH} sprite={down ? 'Rectangle 97' : 'Rectangle 122'} color="#282828FF" sliced spritePpu={180} />
+      <Img pos={down ? [0, -6.642] : [0, 0]} size={[125, 101]} scale={0.6} sprite="swap_icon" style={anim} />
     </Rect>
   )
 }

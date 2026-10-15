@@ -16,6 +16,10 @@ export interface ShuffleButtonProps extends RectProps {
 
 /** How far the face's centre drops when pressed; label and icon ride with it exactly. */
 const FACE_DROP = 6.642
+/** Corner radius matched to the topic card's outline (b78 @ 180ppu ≈ 43 units). */
+const PPU = (33 * 100) / (180 * ((78 * 100) / 180))
+/** The rect was grown 8 right / 9 up to hug the card corner; content keeps its old spot. */
+const SHIFT: [number, number] = [-4, -4.5]
 
 export function ShuffleButton({ count, disabled, onClick, style, ...rect }: ShuffleButtonProps) {
   const { visual, handlers } = useButton({ onClick, disabled })
@@ -39,24 +43,23 @@ export function ShuffleButton({ count, disabled, onClick, style, ...rect }: Shuf
         sprite="Rectangle 96"
         color={off ? '#ABAAAAFF' : '#F5F5F5FF'}
         sliced
-        ppu={0.7}
+        ppu={PPU}
         spritePpu={180}
         style={anim}
       />
       <Img
         a={STRETCH}
-        pos={pressed ? [0, -6] : [0, 0]}
-        size={pressed ? [0, -12] : [0, 0]}
+        // The frame stays put when pressed (only the face sinks), so it never pulls away from the card edge.
         sprite={pressed ? 'Rectangle 97' : 'Rectangle 122'}
         color={off ? '#BEBEBEFF' : '#424242FF'}
         sliced
-        ppu={0.7}
+        ppu={PPU}
         spritePpu={180}
         style={anim}
       />
       <Text
         a={STRETCH}
-        pos={pressed ? [33.66, 8.1 - FACE_DROP] : [33.66, 8.1]}
+        pos={[33.66 + SHIFT[0], 8.1 + SHIFT[1] - (pressed ? FACE_DROP : 0)]}
         size={[-67.33, -16.21]}
         fontSize={75}
         color={off ? '#282828C5' : '#282828FF'}
@@ -65,7 +68,7 @@ export function ShuffleButton({ count, disabled, onClick, style, ...rect }: Shuf
         {`x${count}`}
       </Text>
       <Img
-        pos={pressed ? [-36.6, 2.9 - FACE_DROP] : [-36.6, 2.9]}
+        pos={[-36.6 + SHIFT[0], 2.9 + SHIFT[1] - (pressed ? FACE_DROP : 0)]}
         size={[70, 70]}
         sprite="dice_icon"
         color="#282828FF"

@@ -9,6 +9,7 @@ import { BackButton } from '../ui/BackButton'
 import { Button3D } from '../ui/Button3D'
 import { DragGhost } from '../ui/DragLayer'
 import { dropTargetAt, toStagePoint, type DragPoint } from '../ui/drag'
+import { EmptySlot } from '../ui/EmptySlot'
 import { Img } from '../ui/Img'
 import { Rect, type V2 } from '../ui/Rect'
 import { Screen } from '../ui/Screen'
@@ -38,8 +39,6 @@ const SLOT_POS: [V2, V2] = [
   [0, 95],
   [0, -89],
 ]
-/** Placeholder hover tint (0.8, 0.95, 1). */
-const SLOT_HOVER_TINT = '#CCF2FFFF'
 
 type DropId = 'slot0' | 'slot1' | 'grid'
 
@@ -152,7 +151,7 @@ export function MetricSelection() {
       {SLOT_POS.map((pos, i) =>
         slots[i] === null ? (
           <Rect key={i} pos={pos} size={CARD_SIZE} scale={CARD_SCALE} data-drop={`slot${i}`}>
-            <Img sprite="EmptyField" color={hoveredSlot === i ? SLOT_HOVER_TINT : '#FFFFFFFF'} />
+            <EmptySlot hovered={hoveredSlot === i} />
           </Rect>
         ) : null,
       )}
