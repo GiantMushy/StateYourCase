@@ -13,6 +13,7 @@ import { Button3D } from '../ui/Button3D'
 import { DragGhost } from '../ui/DragLayer'
 import { toStagePoint, useDragGesture, type DragPoint } from '../ui/drag'
 import { Img } from '../ui/Img'
+import { spriteInfo } from '../ui/sprites'
 import { Rect, STRETCH, type V2 } from '../ui/Rect'
 import { Screen } from '../ui/Screen'
 import { Text } from '../ui/Text'
@@ -48,6 +49,17 @@ const METRIC_SPRITES: Record<Metric, string> = {
   OnTopic: 'On Topic',
   Factual: 'Factual',
   Enthusiasm: 'Enthusiasm',
+}
+
+/**
+ * Metric word image beside a DM slot. Unity squeezed whichever word was chosen into a fixed
+ * per-slot box (stretching it); here every word is drawn at its native aspect and the same
+ * 0.6 scale, so all labels share one letter size.
+ */
+function MetricLabel({ metric, y }: { metric: Metric; y: number }) {
+  const sprite = METRIC_SPRITES[metric]
+  const { w, h } = spriteInfo(sprite)
+  return <Img pos={[-266, y]} size={[w, h]} scale={0.6} sprite={sprite} />
 }
 
 /** Card visuals: background (the ColorTint target), caption, then the border on top. */
@@ -188,8 +200,8 @@ export function Voting() {
           </>
         )}
         {/* The metric images keep their authored rect sizes whichever sprite is swapped in. */}
-        {isDM && metrics.length > 0 && <Img pos={[-271.05, 312]} size={[448, 162]} scale={0.6} sprite={METRIC_SPRITES[metrics[0]]} />}
-        {isDM && metrics.length > 1 && <Img pos={[-262.55, 128]} size={[431, 132]} scale={0.6} sprite={METRIC_SPRITES[metrics[1]]} />}
+        {isDM && metrics.length > 0 && <MetricLabel metric={metrics[0]} y={312} />}
+        {isDM && metrics.length > 1 && <MetricLabel metric={metrics[1]} y={128} />}
 
         {/* Transparent raycast target: dropping here returns a card to the grid. */}
         <Rect data-drop="grid" pos={[10.81, -470.24]} size={[885.63, 496.48]} />

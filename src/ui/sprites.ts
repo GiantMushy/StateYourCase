@@ -77,21 +77,28 @@ export function spriteCenterColor(name: string): Rgba | null {
   return c && c.a >= 0.98 ? c : null
 }
 
-const tintCache = new Map<string, string>()
+const tintSourceCache = new Map<string, HTMLCanvasElement>()
+const tintUrlCache = new Map<string, string>()
 
-/** URL of the sprite with its RGB multiplied by `color` (alpha ignored here). */
-export function tintedSpriteUrl(name: string, color: string): string {
-  const c = parseColor(color)
-  if (c.r >= 0.999 && c.g >= 0.999 && c.b >= 0.999) return spriteUrl(name)
-  const key = `${name}|${c.r.toFixed(3)},${c.g.toFixed(3)},${c.b.toFixed(3)}`
-  const cached = tintCache.get(key)
-  if (cached) return cached
+const isWhite = (c: Rgba) => c.r >= 0.999 && c.g >= 0.999 && c.b >= 0.999
+const tintKey = (name: string, c: Rgba) => `${name}|${c.r.toFixed(3)},${c.g.toFixed(3)},${c.b.toFixed(3)}`
+
+/**
+ * Drawable source for the sprite with its RGB multiplied by `color` (alpha ignored here).
+ * Returns null until the image has loaded.
+ */
+export function tintedSpriteSource(name: string, color: string): CanvasImageSource | null {
   const img = images.get(name)
-  if (!img || !img.complete || img.naturalWidth === 0) return spriteUrl(name)
+  if (!img || !img.complete || img.naturalWidth === 0) return null
+  const c = parseColor(color)
+  if (isWhite(c)) return img
+  const key = tintKey(name, c)
+  const cached = tintSourceCache.get(key)
+  if (cached) return cached
   const canvas = document.createElement('canvas')
   canvas.width = img.naturalWidth
   canvas.height = img.naturalHeight
-  const ctx = canvas.getContext('2d')!
+  const ctx = canvas.getContext('2d', { willReadFrequently: true })!
   ctx.drawImage(img, 0, 0)
   const data = ctx.getImageData(0, 0, canvas.width, canvas.height)
   const px = data.data
@@ -101,7 +108,20 @@ export function tintedSpriteUrl(name: string, color: string): string {
     px[i + 2] *= c.b
   }
   ctx.putImageData(data, 0, 0)
-  const url = canvas.toDataURL()
-  tintCache.set(key, url)
+  tintSourceCache.set(key, canvas)
+  return canvas
+}
+
+/** URL of the tinted sprite (for CSS backgrounds). */
+export function tintedSpriteUrl(name: string, color: string): string {
+  const c = parseColor(color)
+  if (isWhite(c)) return spriteUrl(name)
+  const key = tintKey(name, c)
+  const cached = tintUrlCache.get(key)
+  if (cached) return cached
+  const source = tintedSpriteSource(name, color) as HTMLCanvasElement | null
+  if (!source) return spriteUrl(name)
+  const url = source.toDataURL()
+  tintUrlCache.set(key, url)
   return url
 }

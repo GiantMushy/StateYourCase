@@ -85,8 +85,10 @@ Original C# lives in `../Partyament/Assets/Scripts`.
   lighter than browser (sRGB) blending. `Img` and `Text` convert alpha via `ui/linearBlend.ts`
   (calibrated over the teal background). Use their `color`/`opacity` props rather than raw CSS
   opacity for translucent UI.
-- **9-slice seams:** sliced `Img`s draw a centre-colour underlay to hide hairline seams under
-  fractional scaling. Faint ticks can remain on thin outline sprites inside `scale`d parents.
+- **9-slice:** sliced `Img`s render through `SlicedCanvas` — a canvas drawn at device resolution
+  with slice boundaries snapped to whole pixels (CSS border-image cracks under scaling/motion).
+  It redraws on layout resize; transforms just scale the bitmap.
+- **Line height:** `Text` uses TMP's faceInfo line heights (Iceland 0.97em, Liberation 1.15em).
 
 ## Tests
 
@@ -98,5 +100,9 @@ full rounds through the real UI in Chrome (the dev server exposes the store as `
 - Unity "Selected" (sticky pressed look after tapping a normal button) is not reproduced; ToggleButton
   latches (tabs, timer buttons) are, via `selected`.
 - New Game also resets accusation flags (Unity forgot to).
+- Pressed buttons keep an opaque face (Unity's clip faded it to 58%).
+- The selected Versus/Scenario tab is locked down: no hover/press effect.
+- AssignPositions swap buttons press down like the shuffle button (Unity had no transition).
+- DM voting metric labels keep their native aspect (Unity stretched them into fixed boxes).
 - Scroll views use native scrolling (iOS bounce), not Unity's ScrollRect elasticity/inertia.
 - Online screens are visual only — networking was never implemented in Unity either.

@@ -36,7 +36,8 @@ export interface TextProps extends Omit<RectProps, 'color'> {
   textStyle?: CSSProperties
 }
 
-const LINE_HEIGHT = 1.17
+/** TMP faceInfo.lineHeight / pointSize for each font asset (Iceland 54.32/56, Liberation 98.89/86). */
+const LINE_HEIGHT = { Iceland: 54.32 / 56, Liberation: 98.89 / 86 }
 
 function alignStyle(align: TmpAlign): CSSProperties {
   const v = align.startsWith('Top') ? 'flex-start' : align.startsWith('Bottom') || align.startsWith('Baseline') ? 'flex-end' : 'center'
@@ -111,7 +112,7 @@ export function Text({
         style={{
           fontFamily: font === 'Iceland' ? 'Iceland, sans-serif' : 'LiberationSans, Arial, sans-serif',
           fontSize: auto ? auto[1] : fontSize,
-          lineHeight: LINE_HEIGHT + ls / 100,
+          lineHeight: LINE_HEIGHT[font] + ls / 100,
           letterSpacing: cs ? `${cs / 100}em` : undefined,
           color: toCss(color),
           fontWeight: bold ? 'bold' : 'normal',

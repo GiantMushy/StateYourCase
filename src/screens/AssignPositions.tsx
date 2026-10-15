@@ -1,7 +1,7 @@
 // For/Against assignment (Unity AssignPositionsController). Every visit re-randomises the
 // stances, alternating from a coin-flipped first side so neighbouring groups oppose each
 // other; each group card's swap button flips its own stance.
-import { useLayoutEffect, useMemo } from 'react'
+import { useLayoutEffect, useMemo, type CSSProperties } from 'react'
 import * as M from '../game/model'
 import { useGame } from '../game/store'
 import type { Group, Player, Position } from '../game/types'
@@ -98,14 +98,19 @@ function GroupCard({ group, players, positionLabel, onSwap }: { group: Group; pl
   )
 }
 
-/** Swap button: Unity transition "None", so no visual feedback — just click semantics. */
+/**
+ * Swap button. Unity had no transition here; it now presses down like the topic shuffle button
+ * ("Button Shuffle" pressed clip: face and border drop 6 units, border sprite swaps).
+ */
 function SwapButton({ onClick }: { onClick: () => void }) {
-  const { handlers } = useButton({ onClick })
+  const { visual, handlers } = useButton({ onClick })
+  const down = visual === 'pressed'
+  const anim: CSSProperties = { transition: 'all 0.1s linear' }
   return (
     <Rect a={[1, 0, 1, 1]} pos={[-70.95, 0]} size={[141.91, 0]} {...handlers} style={{ cursor: 'pointer' }}>
-      <Img sprite="Rectangle 96" color="#424242FF" sliced spritePpu={180} />
-      <Img sprite="Rectangle 122" color="#282828FF" sliced spritePpu={180} />
-      <Img size={[125, 101]} scale={0.6} sprite="swap_icon" />
+      <Img a={STRETCH} pos={down ? [0, -6] : [0, 0]} size={down ? [0, -12] : [0, 0]} sprite="Rectangle 96" color="#424242FF" sliced spritePpu={180} style={anim} />
+      <Img a={STRETCH} pos={down ? [0, -6] : [0, 0]} size={down ? [0, -12] : [0, 0]} sprite={down ? 'Rectangle 97' : 'Rectangle 122'} color="#282828FF" sliced spritePpu={180} style={anim} />
+      <Img pos={down ? [0, -7] : [0, 0]} size={[125, 101]} scale={0.6} sprite="swap_icon" style={anim} />
     </Rect>
   )
 }

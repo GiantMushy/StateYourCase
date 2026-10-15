@@ -4,7 +4,7 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { Img } from '../../ui/Img'
 import { Rect, STRETCH, type RectProps, type V2 } from '../../ui/Rect'
-import { useButton, type StateDurations } from '../../ui/useButton'
+import { useButton, type StateDurations, buttonTransition } from '../../ui/useButton'
 
 const DURATIONS: StateDurations = { normal: 0.01, highlighted: 0.05, pressed: 0.05, selected: 0.05, disabled: 0 }
 
@@ -23,7 +23,7 @@ export function CassettButton({ faceColor, iconHolder, icon, selected, disabled,
   const { visual, handlers } = useButton({ onClick, disabled, selected })
   const down = visual === 'pressed' || visual === 'selected'
   const d = DURATIONS[visual]
-  const anim: CSSProperties = { transition: `all ${d}s linear` }
+  const anim: CSSProperties = { transition: buttonTransition('all', d, visual) }
 
   const facePos: V2 = down ? [0, -6] : [0, 6.75]
   const faceSize: V2 = down ? [-10, -24] : [-10, -23.5]
@@ -38,9 +38,10 @@ export function CassettButton({ faceColor, iconHolder, icon, selected, disabled,
       {...rect}
       {...handlers}
       scale={visual === 'highlighted' ? 1.1 : 1}
-      style={{ cursor: disabled ? 'default' : 'pointer', transition: `transform ${d}s linear`, ...style }}
+      style={{ cursor: disabled ? 'default' : 'pointer', transition: buttonTransition('transform', d, visual), willChange: 'transform', ...style }}
     >
-      <Img a={STRETCH} sprite="Button Border Square" color="#424242FF" sliced />
+      {/* Pressed: base ends at the pushed-down border's top so no dark band shows above it. */}
+      <Img a={STRETCH} pos={down ? [0, -9] : [0, 0]} size={down ? [0, -18] : [0, 0]} sprite="Button Border Square" color="#424242FF" sliced style={anim} />
       <Img
         a={STRETCH}
         pos={facePos}
@@ -64,7 +65,8 @@ export function CassettButton({ faceColor, iconHolder, icon, selected, disabled,
         spritePpu={180}
         style={anim}
       />
-      <Rect pos={[0, down ? -9.51 : iconHolder.y]} size={[200, down ? 176.59 : iconHolder.h]} style={anim}>
+      {/* The icon rides with the face centre (which drops 12.75 when pressed). */}
+      <Rect pos={[0, down ? iconHolder.y - 12.75 : iconHolder.y]} size={[200, iconHolder.h]} style={anim}>
         {icon}
       </Rect>
     </Rect>

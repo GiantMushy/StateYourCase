@@ -4,7 +4,7 @@ import type { CSSProperties } from 'react'
 import { Img } from '../../ui/Img'
 import { Rect, STRETCH, type RectProps } from '../../ui/Rect'
 import { Text } from '../../ui/Text'
-import { useButton, type StateDurations } from '../../ui/useButton'
+import { useButton, type StateDurations, buttonTransition } from '../../ui/useButton'
 
 const DURATIONS: StateDurations = { normal: 0.1, highlighted: 0.25, pressed: 0.1, selected: 0.1, disabled: 0.25 }
 
@@ -14,19 +14,22 @@ export interface ShuffleButtonProps extends RectProps {
   onClick: () => void
 }
 
+/** How far the face's centre drops when pressed; label and icon ride with it exactly. */
+const FACE_DROP = 6.642
+
 export function ShuffleButton({ count, disabled, onClick, style, ...rect }: ShuffleButtonProps) {
   const { visual, handlers } = useButton({ onClick, disabled })
   const pressed = visual === 'pressed'
   const off = visual === 'disabled'
   const d = DURATIONS[visual]
-  const anim: CSSProperties = { transition: `all ${d}s linear` }
+  const anim: CSSProperties = { transition: buttonTransition('all', d, visual) }
 
   return (
     <Rect
       {...rect}
       {...handlers}
       scale={visual === 'highlighted' ? 1.04 : 1}
-      style={{ cursor: disabled ? 'default' : 'pointer', transition: `transform ${d}s linear`, ...style }}
+      style={{ cursor: disabled ? 'default' : 'pointer', transition: buttonTransition('transform', d, visual), willChange: 'transform', ...style }}
     >
       {/* Disabled clip writes absolute colours: background (0.67, 0.667, 0.667), border 0.745. */}
       <Img
@@ -53,7 +56,7 @@ export function ShuffleButton({ count, disabled, onClick, style, ...rect }: Shuf
       />
       <Text
         a={STRETCH}
-        pos={pressed ? [33.1, -4.4] : [33.66, 8.1]}
+        pos={pressed ? [33.66, 8.1 - FACE_DROP] : [33.66, 8.1]}
         size={[-67.33, -16.21]}
         fontSize={75}
         color={off ? '#282828C5' : '#282828FF'}
@@ -62,7 +65,7 @@ export function ShuffleButton({ count, disabled, onClick, style, ...rect }: Shuf
         {`x${count}`}
       </Text>
       <Img
-        pos={pressed ? [-37.164, -9.604] : [-36.6, 2.9]}
+        pos={pressed ? [-36.6, 2.9 - FACE_DROP] : [-36.6, 2.9]}
         size={[70, 70]}
         sprite="dice_icon"
         color="#282828FF"

@@ -78,3 +78,12 @@ export const DEFAULT_DURATIONS: StateDurations = {
   selected: 0.05,
   disabled: 0,
 }
+
+/** Hover-in crossfade: Unity's 0.05s linear snap felt stiff, so it eases in over the un-highlight time. */
+const HIGHLIGHT_IN = { duration: 0.25, easing: 'cubic-bezier(0.45, 0, 0.25, 1)' }
+
+/** CSS transition for a button part entering `visual` (crossfade duration `d`). */
+export function buttonTransition(property: string, d: number, visual: ButtonVisual): string {
+  if (visual === 'highlighted') return `${property} ${HIGHLIGHT_IN.duration}s ${HIGHLIGHT_IN.easing}`
+  return `${property} ${d}s linear`
+}
