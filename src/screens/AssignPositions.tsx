@@ -46,7 +46,7 @@ export function AssignPositions() {
     <Screen>
       {/* Scroll View → Content: VerticalLayoutGroup pad top 300 / bottom 500, spacing 70. */}
       <div style={{ position: 'absolute', inset: 0, overflowX: 'hidden', overflowY: 'auto', scrollbarWidth: 'none' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 300, paddingBottom: 500, gap: 70 }}>
+        <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 300, paddingBottom: 500, gap: 70 }}>
           <Rect flow size={[974.27, 320.97]}>
             <Img a={STRETCH} size={[0, 74.84]} scale={0.8} sprite={lang === 'is' ? 'Úthluta hlutverkum' : 'Assign Positions'} preserve />
           </Rect>
@@ -56,10 +56,12 @@ export function AssignPositions() {
               <GroupCard key={group.id} group={group} players={players} positionLabel={t(group.position)} onSwap={() => swap(group.id)} />
             ))}
           </Rect>
+
+          {/* Unity has it outside the scroll view; here it scrolls with the content. */}
+          <BackButton onClick={() => setScreen('MetricSelection')} />
         </div>
       </div>
 
-      <BackButton onClick={() => setScreen('MetricSelection')} />
       <Button3D pos={[0, -750]} size={[750, 200]} label={t('Next')} onClick={startCorruptionSequence} />
     </Screen>
   )

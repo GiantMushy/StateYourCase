@@ -6,7 +6,7 @@ import { useT } from '../i18n'
 import { lerpStep, tween, easeInCubic, easeOutCubic, useFrame } from '../ui/anim'
 import { Img } from '../ui/Img'
 import { Rect, STRETCH } from '../ui/Rect'
-import { useStage } from '../ui/Stage'
+import { PHONE_CANVAS, useStage } from '../ui/Stage'
 import { Text } from '../ui/Text'
 import { TintButton } from '../ui/TintButton'
 
@@ -111,7 +111,9 @@ function DropdownBody({ id, open, children, innerInset = 50, anchorTop }: {
 
 export function Menu() {
   const t = useT()
-  const { width } = useStage()
+  // The menu lives in the window-wide overlay layer: on a pillarboxed canvas (iPad) it is
+  // anchored to the window's right edge, not the canvas's.
+  const { viewWidth } = useStage()
   const isOpen = useGame((s) => s.menuOpen)
   const setMenuOpen = useGame((s) => s.setMenuOpen)
   const language = useGame((s) => s.language)
@@ -122,11 +124,14 @@ export function Menu() {
   const [dropdown, setDropdown] = useState<DropdownId | null>(null)
   const menuRef = useRef<HTMLDivElement>(null)
   const tabRef = useRef<HTMLDivElement>(null)
+  const panelRef = useRef<HTMLDivElement>(null)
   const selectorRef = useRef<HTMLDivElement>(null)
   const anim = useRef({ x: MENU_WIDTH, tabY: 0, selectorY: 0, written: '' })
 
-  // Closed: anchoredPosition.x = width (off-screen right). Open: localPosition.x = 500.
-  const targetX = isOpen ? 500 - width / 2 : MENU_WIDTH
+  // Closed: anchoredPosition.x = width (off-screen right). Open: localPosition.x = 500, but never
+  // further in than on the phone, so wider windows (iPad) don't reveal the panel's right edge.
+  const targetX = isOpen ? Math.max(500 - viewWidth / 2, 500 - PHONE_CANVAS.width / 2) : MENU_WIDTH
+  const dismissWidth = Math.max(1500, viewWidth * 2)
   const selectorTarget = language === 'is' ? -61.61 : 81
 
   useFrame((dt) => {
@@ -140,12 +145,16 @@ export function Menu() {
     if (key === a.written) return
     a.written = key
     if (menuRef.current) menuRef.current.style.transform = `translateX(${a.x}px)`
+    // Fully closed the panel sits just past the canvas edge; with a pillarboxed canvas, zoom
+    // rounding can leave a sub-pixel sliver of it visible, so hide it (the tab stays).
+    if (panelRef.current) panelRef.current.style.visibility = a.x === MENU_WIDTH ? 'hidden' : ''
     if (tabRef.current) tabRef.current.style.translate = `0 ${a.tabY}px`
     if (selectorRef.current) selectorRef.current.style.translate = `0 ${-a.selectorY}px`
   })
 
   useLayoutEffect(() => {
     if (menuRef.current) menuRef.current.style.transform = `translateX(${anim.current.x}px)`
+    if (panelRef.current) panelRef.current.style.visibility = 'hidden'
   }, [])
 
   // Slide finished closing (lerp settles after ~2.1s) → collapse every dropdown (CloseAllInstant).
@@ -172,9 +181,10 @@ export function Menu() {
   }
 
   return (
-    <Rect a={[1, 0, 1, 1]} pivot={[1, 0.5]} pos={[0, 0]} size={[MENU_WIDTH, 0]} ref={menuRef}>
+    <Rect a={[1, 0, 1, 1]} pivot={[1, 0.5]} pos={[0, 0]} size={[MENU_WIDTH, 0]} ref={menuRef} style={{ pointerEvents: 'auto' }}>
+      {/* Tap-outside closer; widened so it also covers the side bands of a wide window. */}
       {isOpen && (
-        <TintButton a={[0, 0, 0, 1]} pos={[-750, 0]} size={[1500, 0]} onClick={() => setMenuOpen(false)} />
+        <TintButton a={[0, 0, 0, 1]} pos={[-dismissWidth / 2, 0]} size={[dismissWidth, 0]} onClick={() => setMenuOpen(false)} />
       )}
 
       {/* Unity: size 3096x1392 at scale 0.3, ppu 0.3 — baked into final sizes to avoid scaled 9-slice seams. */}
@@ -189,7 +199,7 @@ export function Menu() {
         </TintButton>
       </Rect>
 
-      <Rect a={STRETCH}>
+      <Rect a={STRETCH} ref={panelRef}>
         <Img color="#424242FF" />
         <Img a={STRETCH} pos={[30.29, 0]} size={[60.57, 0]} sprite="Rectangle 110" color="#282828FF" sliced ppu={0.6} spritePpu={180} />
 

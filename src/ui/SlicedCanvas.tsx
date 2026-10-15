@@ -33,7 +33,7 @@ function draw(canvas: HTMLCanvasElement, sprite: string, color: string, unit: nu
   const layoutW = canvas.offsetWidth
   const layoutH = canvas.offsetHeight
   if (!layoutW || !layoutH) return
-  const stage = canvas.closest<HTMLElement>('.stage')
+  const stage = canvas.closest<HTMLElement>('.stage, .stage-layer')
   const zoom = stage ? parseFloat(getComputedStyle(stage).zoom) || 1 : 1
   const rect = canvas.getBoundingClientRect()
   const dpr = window.devicePixelRatio || 1

@@ -88,6 +88,11 @@ Original C# lives in `../Partyament/Assets/Scripts`.
 - **9-slice:** sliced `Img`s render through `SlicedCanvas` — a canvas drawn at device resolution
   with slice boundaries snapped to whole pixels (CSS border-image cracks under scaling/motion).
   It redraws on layout resize; transforms just scale the bitmap.
+- **Wide windows (iPad, landscape):** `Stage` caps the canvas aspect at 9:16 (≤1080 units wide) and
+  centres it; the `backdrop` (Background) spans the whole window and window-wide fills portal into
+  `useStageOverlay()` (e.g. the Transition's side bands). The `Menu` is the Stage `overlay`, anchored
+  to the window's top-right, and never opens further in than on the 390×844 phone (979 units).
+  Windows narrower than 9:16 (phones) are unaffected.
 - **Line height:** `Text` uses TMP's faceInfo line heights (Iceland 0.97em, Liberation 1.15em).
 
 ## Tests
@@ -105,4 +110,8 @@ full rounds through the real UI in Chrome (the dev server exposes the store as `
 - AssignPositions swap buttons press down like the shuffle button (Unity had no transition).
 - DM voting metric labels keep their native aspect (Unity stretched them into fixed boxes).
 - Scroll views use native scrolling (iOS bounce), not Unity's ScrollRect elasticity/inertia.
+- The back arrow is pinned 159 units from the top (Unity: 900 above centre, which drifts with the
+  canvas height) and scrolls with the content on StartLocalGame/AssignGroups/AssignPositions
+  (Unity kept it fixed over the scroll view). StartLocalGame adds top padding when the name list
+  would put its instructions under the arrow (Unity overlapped them).
 - Online screens are visual only — networking was never implemented in Unity either.

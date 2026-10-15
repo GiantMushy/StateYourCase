@@ -55,15 +55,13 @@ export default function App() {
 
   if (!ready) return null
   return (
-    <Stage>
-      <Background color={bgColor} />
+    <Stage backdrop={<Background color={bgColor} />} overlay={<Menu />}>
       <DragLayerProvider>
         <div style={{ position: 'absolute', inset: 0 }}>
           <ActiveScreen key={visit} />
         </div>
       </DragLayerProvider>
       <Transition />
-      <Menu />
     </Stage>
   )
 }

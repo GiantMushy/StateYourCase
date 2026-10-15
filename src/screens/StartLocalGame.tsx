@@ -3,13 +3,13 @@
 // edit field and a trash button. Names are trimmed and clamped to 12 characters, at most
 // CONFIG.maxPlayers players. A case-insensitive duplicate name (typed in any field) swaps the
 // instructions for the error text and disables Next.
-import { useRef, useState, type MouseEvent, type RefObject } from 'react'
+import { useLayoutEffect, useRef, useState, type MouseEvent, type RefObject } from 'react'
 import { CONFIG } from '../game/config'
 import { playerList } from '../game/model'
 import { useGame } from '../game/store'
 import type { Player } from '../game/types'
 import { useT } from '../i18n'
-import { BackButton } from '../ui/BackButton'
+import { BACK_BUTTON_BOTTOM, BackButton } from '../ui/BackButton'
 import { Button3D } from '../ui/Button3D'
 import { Img } from '../ui/Img'
 import { Rect, STRETCH } from '../ui/Rect'
@@ -21,6 +21,40 @@ import { useCenterPivotScroll } from './startLocal/useCenterPivotScroll'
 
 /** Error-source id of the add-player input (player ids are ≥ 0). */
 const DEFAULT_INPUT = -1
+
+/** Content VerticalLayoutGroup padding. */
+const PAD_TOP = 300
+const PAD_BOTTOM = 500
+/** How far the two-line instructions reach above the add-player field (centre 93 + half of 2 × 0.97em lines). */
+const INSTRUCTIONS_ABOVE = 93 + 70 * 0.97
+/** Field top that keeps the instructions clear of the back arrow when the list is scrolled to the top. */
+const CLEAR_TOP = BACK_BUTTON_BOTTOM + 30 + INSTRUCTIONS_ABOVE
+
+/**
+ * Extra top padding so the instructions never sit under the back arrow (Unity overlapped them
+ * once the list filled the screen). While the content is centred with room to spare it is 0,
+ * so the phone layout is unchanged; it ramps in continuously as the list approaches the top.
+ */
+function useArrowClearance(viewport: RefObject<HTMLDivElement | null>, list: RefObject<HTMLDivElement | null>) {
+  const [extra, setExtra] = useState(0)
+  useLayoutEffect(() => {
+    const vp = viewport.current
+    const el = list.current
+    if (!vp || !el) return
+    const need = Math.max(0, CLEAR_TOP - PAD_TOP)
+    const update = () => {
+      // Space left around the centred content without any extra padding.
+      const free = vp.clientHeight - (PAD_TOP + el.offsetHeight + PAD_BOTTOM)
+      setExtra(free >= 2 * need ? 0 : free >= need ? 2 * need - free : need)
+    }
+    update()
+    const ro = new ResizeObserver(update)
+    ro.observe(vp)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [viewport, list])
+  return extra
+}
 
 const clampName = (name: string) => name.trim().slice(0, CONFIG.maxNameLength)
 
@@ -63,6 +97,8 @@ export function StartLocalGame() {
   const viewport = useRef<HTMLDivElement>(null)
   const content = useRef<HTMLDivElement>(null)
   const onScroll = useCenterPivotScroll(viewport, content)
+  const nameList = useRef<HTMLDivElement>(null)
+  const clearance = useArrowClearance(viewport, nameList)
 
   const onDefaultChange = (value: string) => {
     setDraft(value)
@@ -107,10 +143,13 @@ export function StartLocalGame() {
     <Screen>
       {/* Scroll View → Viewport → Content (VerticalLayoutGroup pad top 300 / bottom 500, pivot 0.5) */}
       <div ref={viewport} className="scroll-y" style={{ position: 'absolute', inset: 0 }} onScroll={onScroll}>
-        <div style={{ minHeight: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-          <div ref={content} style={{ flex: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '300px 0 500px' }}>
+        <div style={{ position: 'relative', minHeight: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+          <div
+            ref={content}
+            style={{ flex: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: `${PAD_TOP + clearance}px 0 ${PAD_BOTTOM}px` }}
+          >
             {/* NameInputs: VerticalLayoutGroup spacing 50, UpperCenter */}
-            <div style={{ width: 878.87, flex: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 50 }}>
+            <div ref={nameList} style={{ width: 878.87, flex: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 50 }}>
               {count < CONFIG.maxPlayers && (
                 <NameInput
                   value={draft}
@@ -133,10 +172,12 @@ export function StartLocalGame() {
               ))}
             </div>
           </div>
+
+          {/* Unity has it outside the scroll view; here it scrolls with the content. */}
+          <BackButton onClick={() => setScreen('PackSelection')} />
         </div>
       </div>
 
-      <BackButton onClick={() => setScreen('PackSelection')} />
       <Button3D
         pos={[0, -750]}
         size={[750, 200]}

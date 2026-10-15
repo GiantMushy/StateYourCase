@@ -102,7 +102,7 @@ export function AssignGroups() {
       <div ref={root} style={{ position: 'absolute', inset: 0 }}>
         <div ref={viewport} className="scroll-y" style={{ position: 'absolute', inset: 0 }}>
           {/* Content: VerticalLayoutGroup pad top 300 / bottom 500, spacing 70, UpperCenter */}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '300px 0 500px', gap: 70 }}>
+          <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '300px 0 500px', gap: 70 }}>
             <Rect flow size={[900, 200]}>
               <Img sprite={header} preserve />
             </Rect>
@@ -148,10 +148,12 @@ export function AssignGroups() {
             >
               {board.unassigned.map(card)}
             </div>
+
+            {/* Unity has it outside the scroll view; here it scrolls with the content. */}
+            <BackButton onClick={() => setScreen('StartLocalGame')} />
           </div>
         </div>
 
-        <BackButton onClick={() => setScreen('StartLocalGame')} />
         <Button3D pos={[0, -750]} size={[750, 200]} label={t('Start')} disabled={!canStart} onClick={start} />
 
         {drag && (

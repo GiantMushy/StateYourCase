@@ -37,6 +37,14 @@ body {
   touch-action: manipulation;
 }
 
+/* Window-wide layers behind/above the (possibly pillarboxed) stage. */
+.stage-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: hidden;
+}
+
 .stage input {
   -webkit-user-select: text;
   user-select: text;
