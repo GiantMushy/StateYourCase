@@ -25,11 +25,15 @@ const PRIVACY_URL =
 type DropdownId = 'newGame' | 'language' | 'settings' | 'rulebook'
 const HEIGHTS: Record<DropdownId, number> = { newGame: 292.75, language: 371.8, settings: 640, rulebook: 750 }
 
-const SETTINGS: { key: SettingKey; label: StringKey; icon: string }[] = [
-  { key: 'metrics', label: 'Setting_metrics', icon: 'metrics_icon' },
-  { key: 'secretObjectives', label: 'Setting_secret_obj', icon: 'secobj_icon_white_0' },
-  { key: 'dmShuffle', label: 'Setting_dm_shuffle', icon: 'dice_icon' },
+const SETTINGS: { key: SettingKey; label: StringKey }[] = [
+  { key: 'metrics', label: 'Setting_metrics' },
+  { key: 'secretObjectives', label: 'Setting_secret_obj' },
+  { key: 'dmShuffle', label: 'Setting_dm_shuffle' },
 ]
+/** Thumb flip: hop, spin half a turn (always clockwise) and land with a little overshoot. */
+const THUMB_FLIP_MS = 550
+/** Fraction of the flip at which the thumb lands; the row backdrop changes on landing. */
+const THUMB_LAND = 0.8
 /** How long a refused DM Shuffle toggle shows its reason. */
 const SETTING_ERROR_SECONDS = 3
 
@@ -297,7 +301,7 @@ function LinkRow({ label, icon, height, textHeight, textPos, iconPos, margin, on
   )
 }
 
-/** Settings dropdown: one row per toggle (icon, label, switch) and a status line below. */
+/** Settings dropdown: one row per toggle (thumb up/down, label) and a status line below. */
 function SettingsList() {
   const t = useT()
   const settings = useGame((s) => s.settings)
@@ -320,21 +324,20 @@ function SettingsList() {
   return (
     <Rect a={STRETCH} pos={[0, 25]} size={[0, -50]}>
       <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 40, gap: 24 }}>
-        {SETTINGS.map(({ key, label, icon }) => (
+        {SETTINGS.map(({ key, label }) => (
           <TintButton
             key={key}
             flow
             size={[583.53, 112.62]}
-            image={{ sprite: 'Button Background Sharp', color: '#FFFFFF0A', sliced: true, ppu: 1, spritePpu: 180 }}
             disabled={locked}
             onClick={() => flip(key)}
             style={{ opacity: locked ? 0.45 : 1, transition: 'opacity 0.15s linear' }}
           >
-            <Img a={[0, 0.5, 0, 0.5]} pos={[45, 0]} size={[72, 72]} sprite={icon} preserve />
-            <Text fontSize={85} auto={[50, 85]} color="#F5F5F5FF" align="Left" margin={[105, 0, 185, 6]}>
+            <RowBackdrop on={settings[key]} />
+            <ThumbToggle on={settings[key]} />
+            <Text fontSize={85} auto={[50, 85]} color="#F5F5F5FF" align="Left" margin={[110, 0, 30, 6]}>
               {t(label)}
             </Text>
-            <Switch a={[1, 0.5, 1, 0.5]} pos={[-80, 0]} on={settings[key]} />
           </TintButton>
         ))}
         <Text flow size={[583.53, 110]} fontSize={48} auto={[30, 48]} color={locked ? '#BDBDBDFF' : '#FF8A8AFF'}>
@@ -345,13 +348,95 @@ function SettingsList() {
   )
 }
 
-/** On/off pill: teal track with the knob right when on, dark track with the knob left when off. */
-function Switch({ a, pos, on }: { a: readonly [number, number, number, number]; pos: readonly [number, number]; on: boolean }) {
-  const anim = 'all 0.15s ease-out'
+/**
+ * Lighter row background, shown only while the setting is on. It switches as the flipping thumb
+ * lands: turning on, it appears with a brief flash; turning off, it fades away.
+ */
+function RowBackdrop({ on }: { on: boolean }) {
+  const prev = useRef(on)
+  const baseRef = useRef<HTMLDivElement>(null)
+  const flashRef = useRef<HTMLDivElement>(null)
+
+  useLayoutEffect(() => {
+    if (prev.current === on) return
+    prev.current = on
+    const land = THUMB_LAND
+    if (on) {
+      baseRef.current?.animate([{ opacity: 0 }, { opacity: 0, offset: land }, { opacity: 1, offset: land + 0.05 }, { opacity: 1 }], THUMB_FLIP_MS)
+      // The flash outlasts the flip a little so it can fade out softly.
+      const total = THUMB_FLIP_MS * 1.6
+      const at = (THUMB_FLIP_MS * land) / total
+      flashRef.current?.animate([{ opacity: 0 }, { opacity: 0, offset: at }, { opacity: 1, offset: at + 0.04, easing: 'ease-out' }, { opacity: 0 }], total)
+    } else {
+      baseRef.current?.animate([{ opacity: 1 }, { opacity: 1, offset: land }, { opacity: 0 }], THUMB_FLIP_MS)
+    }
+  }, [on])
+
+  const sprite = { sprite: 'Button Background Sharp', sliced: true, ppu: 1, spritePpu: 180 } as const
   return (
-    <Rect a={a} pos={[pos[0], pos[1]]} size={[140, 72]}>
-      <div style={{ position: 'absolute', inset: 0, borderRadius: 36, background: on ? '#48CFCB' : '#282828', boxShadow: 'inset 0 0 0 4px #1E1E1E', transition: anim }} />
-      <div style={{ position: 'absolute', top: 8, left: on ? 76 : 8, width: 56, height: 56, borderRadius: 28, background: '#F5F5F5', transition: anim }} />
-    </Rect>
+    <>
+      <div ref={baseRef} style={{ position: 'absolute', inset: 0, opacity: on ? 1 : 0 }}>
+        <Img {...sprite} color="#FFFFFF0A" />
+      </div>
+      <div ref={flashRef} style={{ position: 'absolute', inset: 0, opacity: 0 }}>
+        <Img {...sprite} color="#FFFFFF28" />
+      </div>
+    </>
+  )
+}
+
+/**
+ * Thumbs up (on) / thumbs down (off) with a soft drop shadow underneath, like the language
+ * pointer. Toggling flips it half a turn while it hops; the shadow stays grounded and shrinks.
+ */
+function ThumbToggle({ on }: { on: boolean }) {
+  // Accumulated angle so every flip spins the same way: 0 = up, 180 = down (mod 360).
+  const angle = useRef(on ? 0 : 180)
+  const prev = useRef(on)
+  const iconRef = useRef<HTMLDivElement>(null)
+  const shadowRef = useRef<HTMLDivElement>(null)
+
+  useLayoutEffect(() => {
+    if (prev.current === on) return
+    prev.current = on
+    const from = angle.current
+    const to = (angle.current += 180)
+    // This render still carried the old angle; settle both layers on the new one.
+    for (const el of [iconRef.current, shadowRef.current]) if (el) el.style.transform = `rotate(${to}deg)`
+    const opts: KeyframeAnimationOptions = { duration: THUMB_FLIP_MS, easing: 'linear' }
+    iconRef.current?.animate(
+      [
+        { transform: `translateY(0) rotate(${from}deg) scale(1)`, easing: 'cubic-bezier(0.2, 0.7, 0.4, 1)' },
+        { transform: `translateY(-38px) rotate(${from + 110}deg) scale(1.3)`, offset: 0.45, easing: 'cubic-bezier(0.6, 0, 0.8, 0.4)' },
+        { transform: `translateY(0) rotate(${to + 14}deg) scale(0.92)`, offset: THUMB_LAND, easing: 'ease-out' },
+        { transform: `translateY(0) rotate(${to}deg) scale(1)` },
+      ],
+      opts,
+    )
+    shadowRef.current?.animate(
+      [
+        { transform: `rotate(${from}deg) scale(1)`, opacity: 1 },
+        { transform: `rotate(${from + 110}deg) scale(0.7)`, opacity: 0.35, offset: 0.45 },
+        { transform: `rotate(${to + 14}deg) scale(1)`, opacity: 1, offset: THUMB_LAND },
+        { transform: `rotate(${to}deg) scale(1)`, opacity: 1 },
+      ],
+      opts,
+    )
+  }, [on])
+
+  const rest = { position: 'absolute', inset: 0, transform: `rotate(${angle.current}deg)` } as const
+  return (
+    <>
+      <Rect a={[0, 0.5, 0, 0.5]} pos={[52, -7]} size={[84, 84]}>
+        <div ref={shadowRef} style={rest}>
+          <Img sprite="thumb_shadow" />
+        </div>
+      </Rect>
+      <Rect a={[0, 0.5, 0, 0.5]} pos={[52, 0]} size={[84, 84]}>
+        <div ref={iconRef} style={rest}>
+          <Img sprite="thumb_icon" />
+        </div>
+      </Rect>
+    </>
   )
 }
