@@ -22,7 +22,7 @@ import { Menu } from './shell/Menu'
 import { Transition } from './shell/Transition'
 import { DragLayerProvider } from './ui/DragLayer'
 import { preloadSprites } from './ui/sprites'
-import { Stage } from './ui/Stage'
+import { heightForCentreButton, heightForTopButton, Stage } from './ui/Stage'
 
 const SCREENS: Record<Screen, ComponentType> = {
   LocalVsOnline,
@@ -42,6 +42,18 @@ const SCREENS: Record<Screen, ComponentType> = {
   Scoreboard,
 }
 
+/**
+ * Screens whose bottom button sits lower than the standard Next (-750): on wide windows they get a
+ * taller, narrower canvas so the button lands at the standard height (see Stage).
+ */
+const MIN_HEIGHT: Partial<Record<Screen, number>> = {
+  // Select: VerticalLayoutGroup pad 200, children 364.2 / 129.07 / 220 / 600 / 223.16, spacing 60.
+  TopicSelection: heightForTopButton(200 + 364.2 + 60 + 129.07 + 60 + 220 + 60 + 600 + 60 + 223.16 / 2),
+  MetricSelection: heightForCentreButton(-840),
+  Voting: heightForCentreButton(-840),
+  HostOnlineGame: heightForCentreButton(-868),
+}
+
 export default function App() {
   const [ready, setReady] = useState(false)
   useEffect(() => {
@@ -55,13 +67,23 @@ export default function App() {
 
   if (!ready) return null
   return (
-    <Stage backdrop={<Background color={bgColor} />} overlay={<Menu />}>
+    <Stage
+      backdrop={<Background color={bgColor} />}
+      overlay={
+        <>
+          <Transition />
+          <Menu />
+        </>
+      }
+      minHeight={MIN_HEIGHT[screen]}
+      // The pack carousel spreads into the side bands on wide windows.
+      bleedX={screen === 'PackSelection'}
+    >
       <DragLayerProvider>
         <div style={{ position: 'absolute', inset: 0 }}>
           <ActiveScreen key={visit} />
         </div>
       </DragLayerProvider>
-      <Transition />
     </Stage>
   )
 }

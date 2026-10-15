@@ -11,6 +11,7 @@ import { Button3D } from '../ui/Button3D'
 import { Img } from '../ui/Img'
 import { Rect, STRETCH, type V2 } from '../ui/Rect'
 import { Screen } from '../ui/Screen'
+import { useStage } from '../ui/Stage'
 import { Text } from '../ui/Text'
 
 interface PackCard {
@@ -59,10 +60,27 @@ const COLOR_POWER = 2
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t
 const lerp2 = (a: V2, b: V2, t: number): V2 => [lerp(a[0], b[0], t), lerp(a[1], b[1], t)]
 
-function slotPose(offset: number) {
+// Wide windows (iPad): the neighbours move out into the side bands, up to fully beside the front
+// card, keeping this margin from the window edge. Phones keep the Unity slots.
+const CARD_W = 850
+const WIDE_EDGE_MARGIN = 60
+const WIDE_GAP = 40
+const WIDE_MAX_X = CARD_W / 2 + (CARD_W * SLOT.next.scale) / 2 + WIDE_GAP
+
+/** Horizontal slot distances from the centre: neighbours (`nearX`) and the faded-out slots beyond (`farX`). */
+interface SlotX {
+  nearX: number
+  farX: number
+}
+const UNITY_SLOT_X: SlotX = { nearX: SLOT.next.pos[0], farX: SLOT.offRight.pos[0] }
+
+function slotPose(offset: number, { nearX, farX }: SlotX = UNITY_SLOT_X) {
   const abs = Math.abs(offset)
-  const near = offset >= 0 ? SLOT.next : SLOT.prev
-  const far = offset >= 0 ? SLOT.offRight : SLOT.offLeft
+  const side = offset >= 0 ? 1 : -1
+  const nearSlot = offset >= 0 ? SLOT.next : SLOT.prev
+  const farSlot = offset >= 0 ? SLOT.offRight : SLOT.offLeft
+  const near = { pos: [side * nearX, nearSlot.pos[1]] as V2, scale: nearSlot.scale }
+  const far = { pos: [side * farX, farSlot.pos[1]] as V2 }
   if (abs <= 1) return { pos: lerp2(SLOT.current.pos, near.pos, abs), scale: lerp(SLOT.current.scale, near.scale, abs), alpha: 1 }
   const t = Math.min(1, abs - 1)
   return { pos: lerp2(near.pos, far.pos, t), scale: lerp(near.scale, SLOT.offScale, t), alpha: 1 - t }
@@ -174,13 +192,28 @@ export function PackSelection() {
     continueAfterPackSelection()
   }
 
+  // Wide windows: spread the neighbours into the side bands, and pull the faded-out slots in so
+  // cards fade in/out inside the window instead of sliding past its edge. Eased in with the
+  // bands; phones keep the Unity slots.
+  const { width, viewWidth } = useStage()
+  const wide = Math.min(1, Math.max(0, (viewWidth - width) / 200))
+  const room = viewWidth / 2 - WIDE_EDGE_MARGIN
+  const wideNear = Math.max(UNITY_SLOT_X.nearX, Math.min(WIDE_MAX_X, room - (CARD_W * SLOT.next.scale) / 2))
+  const wideFar = Math.max(wideNear, room - (CARD_W * SLOT.offScale) / 2)
+  const slotX: SlotX = {
+    nearX: lerp(UNITY_SLOT_X.nearX, wideNear, wide),
+    farX: lerp(UNITY_SLOT_X.farX, wideFar, wide),
+  }
+  // The swipe area also covers the side bands.
+  const band = (viewWidth - width) / 2
+
   // Draw order: farthest from the current card first.
   const order = CARDS.map((_, i) => i).sort((a, b) => Math.abs(b - currentIndex) - Math.abs(a - currentIndex))
 
   return (
     <Screen>
       <div
-        style={{ position: 'absolute', inset: 0, touchAction: 'pan-y' }}
+        style={{ position: 'absolute', top: 0, bottom: 0, left: -band, right: -band, touchAction: 'pan-y' }}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
@@ -191,7 +224,7 @@ export function PackSelection() {
         <Rect a={STRETCH} pos={[0, -403.39]} size={[0, -1006.62]}>
           {order.map((i) => {
             const card = CARDS[i]
-            const pose = slotPose(i - display)
+            const pose = slotPose(i - display, slotX)
             const owned = ownedPacks.includes(card.pack)
             return (
               <Rect

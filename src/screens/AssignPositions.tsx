@@ -11,6 +11,7 @@ import { Button3D } from '../ui/Button3D'
 import { Img } from '../ui/Img'
 import { Rect, STRETCH } from '../ui/Rect'
 import { Screen } from '../ui/Screen'
+import { useStage } from '../ui/Stage'
 import { Text } from '../ui/Text'
 import { useButton } from '../ui/useButton'
 
@@ -23,6 +24,7 @@ export function AssignPositions() {
   const update = useGame((s) => s.update)
   const setScreen = useGame((s) => s.setScreen)
   const startCorruptionSequence = useGame((s) => s.startCorruptionSequence)
+  const { height } = useStage()
 
   // OnEnable → RandomlyAssignPositions (groups ordered by id).
   useLayoutEffect(() => {
@@ -44,14 +46,15 @@ export function AssignPositions() {
 
   return (
     <Screen>
-      {/* Scroll View → Content: VerticalLayoutGroup pad top 300 / bottom 500, spacing 70. */}
+      {/* Scroll View → Content: VerticalLayoutGroup pad top 300, spacing 70. Unity's Group List is a
+          fixed 3000 tall (plus pad bottom 500), scrolling far past the last team; here the list is
+          its real height and the bottom padding is half the screen, so the last team stops there. */}
       <div style={{ position: 'absolute', inset: 0, overflowX: 'hidden', overflowY: 'auto', scrollbarWidth: 'none' }}>
-        <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 300, paddingBottom: 500, gap: 70 }}>
+        <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 300, paddingBottom: height / 2, gap: 70 }}>
           <Rect flow size={[974.27, 320.97]}>
             <Img a={STRETCH} size={[0, 74.84]} scale={0.8} sprite={lang === 'is' ? 'Úthluta hlutverkum' : 'Assign Positions'} preserve />
           </Rect>
-          {/* Group List: fixed 3000 tall in the scene (its ContentSizeFitter is unconstrained). */}
-          <Rect flow size={[878.87, 3000]} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 50 }}>
+          <Rect flow size={[878.87, 0]} style={{ height: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 50 }}>
             {groups.map(({ group, players }) => (
               <GroupCard key={group.id} group={group} players={players} positionLabel={t(group.position)} onSwap={() => swap(group.id)} />
             ))}

@@ -88,11 +88,16 @@ Original C# lives in `../Partyament/Assets/Scripts`.
 - **9-slice:** sliced `Img`s render through `SlicedCanvas` — a canvas drawn at device resolution
   with slice boundaries snapped to whole pixels (CSS border-image cracks under scaling/motion).
   It redraws on layout resize; transforms just scale the bitmap.
-- **Wide windows (iPad, landscape):** `Stage` caps the canvas aspect at 9:16 (≤1080 units wide) and
-  centres it; the `backdrop` (Background) spans the whole window and window-wide fills portal into
-  `useStageOverlay()` (e.g. the Transition's side bands). The `Menu` is the Stage `overlay`, anchored
-  to the window's top-right, and never opens further in than on the 390×844 phone (979 units).
-  Windows narrower than 9:16 (phones) are unaffected.
+- **Wide windows (iPad, landscape):** `Stage` caps the canvas aspect at the reference phone's
+  (390×844), so a wide window gets exactly the phone canvas (979×2118), centred. Screens whose
+  bottom button sits lower than the standard Next (-750) pass a `minHeight` (see `MIN_HEIGHT` in
+  `App.tsx`): on wide windows they get a taller, narrower canvas so that button lands at the
+  standard height (eased in as the window widens, so phones are untouched). The `backdrop`
+  (Background) and `overlay` (Transition, Menu) span the whole window at the phone-shaped scale;
+  the Menu is anchored to the window's top-right and never opens further in than on the phone.
+  PackSelection uses `bleedX` on wide windows: the carousel draws into the side bands, the
+  neighbour cards spread out (fully beside the front card when there is room) and the faded-out
+  slots are pulled inside the window, so cards fade in/out instead of being cut at an edge.
 - **Line height:** `Text` uses TMP's faceInfo line heights (Iceland 0.97em, Liberation 1.15em).
 
 ## Tests
@@ -114,4 +119,6 @@ full rounds through the real UI in Chrome (the dev server exposes the store as `
   canvas height) and scrolls with the content on StartLocalGame/AssignGroups/AssignPositions
   (Unity kept it fixed over the scroll view). StartLocalGame adds top padding when the name list
   would put its instructions under the arrow (Unity overlapped them).
+- AssignPositions scrolls only until the last team reaches mid-screen (Unity's Group List was a
+  fixed 3000 tall).
 - Online screens are visual only — networking was never implemented in Unity either.
