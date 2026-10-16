@@ -3,7 +3,7 @@
 // Clicking the accuser again cancels; clicking the target again deselects it. Each player
 // may accuse once per round (Player.hasAccused disables their button).
 // Choosing the accuser swings their gavel; a correct call has the finger poke the accused's
-// name before the points are taken.
+// name before the points are taken; a wrong call shakes the accuser's name as it fades out.
 import { useEffect, useRef, useState } from 'react'
 import * as M from '../../game/model'
 import { useGame } from '../../game/store'
@@ -28,6 +28,7 @@ export function AccusationPanel(rect: RectProps) {
   /** Gavel swing / finger poke triggers: whose button, and a counter to re-fire. */
   const [strike, setStrike] = useState({ id: -1, n: 0 })
   const [poke, setPoke] = useState({ id: -1, n: 0 })
+  const [shake, setShake] = useState({ id: -1, n: 0 })
   const [poking, setPoking] = useState(false)
   const pokeTimer = useRef(0)
   useEffect(() => () => clearTimeout(pokeTimer.current), [])
@@ -51,6 +52,7 @@ export function AccusationPanel(rect: RectProps) {
     const { accuser, target } = step
     if (!correct) {
       update((g) => M.resolveIncorrectAccusation(g, accuser))
+      setShake((s) => ({ id: accuser, n: s.n + 1 }))
       setStep({ kind: 'Default' })
       return
     }
@@ -109,6 +111,7 @@ export function AccusationPanel(rect: RectProps) {
               index={index}
               strike={strike.id === p.id ? strike.n : 0}
               poke={poke.id === p.id ? poke.n : 0}
+              shake={shake.id === p.id ? shake.n : 0}
             />
           )
         })}

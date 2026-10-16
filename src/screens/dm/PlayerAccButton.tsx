@@ -4,14 +4,15 @@
 // Redesign additions: the button spins over (on its horizontal axis) whenever its colour or
 // icon changes, swapping looks while edge-on; the gavel swings down when the player becomes
 // the accuser (`strike`); and the pointing finger slides over and pokes the name when the
-// accusation is confirmed (`poke`).
+// accusation is confirmed (`poke`); a wrong accuser's name shakes as it fades out (`shake`).
 import { useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
 import { Img } from '../../ui/Img'
 import { Rect, STRETCH, type RectProps, type V2 } from '../../ui/Rect'
 import { Text } from '../../ui/Text'
 import { useButton, type StateDurations, buttonTransition } from '../../ui/useButton'
 
-const DURATIONS: StateDurations = { normal: 0.25, highlighted: 0.05, pressed: 0.05, selected: 0.05, disabled: 0 }
+/** Disabled fades in over half a second (Unity snapped), so a wrong accuser visibly fades out. */
+const DURATIONS: StateDurations = { normal: 0.25, highlighted: 0.05, pressed: 0.05, selected: 0.05, disabled: 0.5 }
 const CROSSFIRE_DURATION = 0.05
 
 /** Spin: half-turn time each way, and the cascade delay between list entries. */
@@ -41,9 +42,11 @@ export interface PlayerAccButtonProps extends RectProps {
   strike: number
   /** Bumped to poke the name with the finger. */
   poke: number
+  /** Bumped to shake the name (a wrong accusation). */
+  shake: number
 }
 
-export function PlayerAccButton({ name, icon, crossfire, disabled, dimmed = false, onClick, index, strike, poke, style, ...rect }: PlayerAccButtonProps) {
+export function PlayerAccButton({ name, icon, crossfire, disabled, dimmed = false, onClick, index, strike, poke, shake, style, ...rect }: PlayerAccButtonProps) {
   const { visual, handlers } = useButton({ onClick, disabled: disabled || dimmed })
   const down = visual === 'pressed'
   const off = disabled
@@ -133,6 +136,15 @@ export function PlayerAccButton({ name, icon, crossfire, disabled, dimmed = fals
     ]
     nameRef.current?.animate([{ transform: 'translateX(0)' }, ...jolt(0.33), ...jolt(0.54), { transform: 'translateX(0)' }], POKE_MS)
   }, [poke])
+
+  // Name: a small "no" shake that dies down over the fade.
+  useLayoutEffect(() => {
+    if (!shake) return
+    nameRef.current?.animate(
+      [0, -9, 8, -7, 6, -4, 3, -1, 0].map((x) => ({ transform: `translateX(${x}px)` })),
+      { duration: 500, easing: 'ease-out' },
+    )
+  }, [shake])
 
   // Disabled clip also re-lays the face: full width, nudged up.
   // Pressed: the face centre drops 6 units; name and icon ride with it exactly.
