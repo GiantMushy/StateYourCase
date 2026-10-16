@@ -4,7 +4,7 @@
 // (Accusation | Active | Inactive) switched by icon tabs.
 // Ending a turn (Stop, or the timer reaching 0) ejects the tape and drops in the next group's;
 // after the last group the deck is left empty and locked, and Next proceeds to voting.
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { CONFIG } from '../game/config'
 import * as M from '../game/model'
 import { useGame } from '../game/store'
@@ -32,6 +32,13 @@ const SWAP_DISTANCE = 1150
 /** How high a tape is held above the well while it's out. */
 const LIFT = 44
 const easeOutBack = (u: number) => 1 + 2.4 * Math.pow(u - 1, 3) + 1.4 * Math.pow(u - 1, 2)
+/** Topic box: Unity's fixed size is the maximum; header height, text margins and padding. */
+const TOPIC_MAX_H = 541.18
+const TOPIC_HEADER_H = 125.5
+const TOPIC_MARGIN_X = 34.824 + 31.922
+const TOPIC_PAD_BOTTOM = 10.157
+const TOPIC_PAD_Y = 50
+
 /** Inspector objectivesSlideOffset / objectivesSlideSpeed. */
 const TRACK_OFFSET: Record<ObjectiveTab, number> = { Accusation: 1000, Active: 0, Inactive: -1000 }
 const TRACK_SPEED = 8
@@ -166,6 +173,27 @@ export function DMDisplay() {
   const isVersus = topic?.type !== 'Scenarios'
   const topicText = topic ? (lang === 'is' && topic.descriptionIs ? topic.descriptionIs : topic.description) : 'No topic selected.'
 
+  // The topic box hugs its text (plus padding), up to the Unity size.
+  const topicRef = useRef<HTMLDivElement>(null)
+  const topicMeasureRef = useRef<HTMLDivElement>(null)
+  const [topicH, setTopicH] = useState(TOPIC_MAX_H)
+  useLayoutEffect(() => {
+    const fit = () => {
+      const box = topicRef.current
+      const text = topicMeasureRef.current
+      if (!box || !text || !box.offsetWidth) return
+      // Ratio to the known box width, so the result is in canvas units whatever the zoom.
+      const textH = (text.offsetHeight * 850) / box.offsetWidth
+      setTopicH(Math.min(TOPIC_MAX_H, TOPIC_HEADER_H + TOPIC_PAD_Y * 2 + textH + TOPIC_PAD_BOTTOM))
+    }
+    fit()
+    let live = true
+    document.fonts?.ready.then(() => live && fit())
+    return () => {
+      live = false
+    }
+  }, [topicText])
+
   const playersOf = (groupId: number) => M.playersInGroup(game, groupId)
   const current = groups[groupIndex]
   const incoming = swap?.to != null ? groups[swap.to] : undefined
@@ -195,8 +223,25 @@ export function DMDisplay() {
           </Rect>
 
           {/* Active Topic */}
-          <Rect flow size={[850, 541.18]}>
+          <Rect ref={topicRef} flow size={[850, topicH]}>
             <Img sprite="Button Background Square" color="#FFFFFF32" sliced spritePpu={180} />
+            {/* Measures the topic at full size to fit the box to it. */}
+            <div
+              ref={topicMeasureRef}
+              aria-hidden
+              style={{
+                position: 'absolute',
+                visibility: 'hidden',
+                width: 850 - TOPIC_MARGIN_X,
+                fontFamily: 'Iceland, sans-serif',
+                fontSize: 75,
+                lineHeight: 54.32 / 56,
+                whiteSpace: 'pre-wrap',
+                overflowWrap: 'break-word',
+              }}
+            >
+              {topicText}
+            </div>
             <Rect a={[0, 1, 1, 1]} pos={[0, -62.75]} size={[0, 125.5]}>
               <Img sprite="Rectangle 117" color="#424242FF" sliced />
               <Img sprite="Rectangle 120" color="#282828FF" sliced />
@@ -208,7 +253,7 @@ export function DMDisplay() {
               <Img pos={[-199, isVersus ? 0 : -6]} size={[80, 80]} sprite={isVersus ? 'swords_icon' : 'theater_icon'} color="#F5F5F5FF" />
             </Rect>
             <Rect a={STRETCH} pos={[0, -62.75]} size={[0, -125.51]}>
-              <Text auto={[55, 75]} color="#414141FF" margin={[34.824, 0, 31.922, 10.157]}>
+              <Text auto={[55, 75]} color="#414141FF" margin={[34.824, 0, 31.922, TOPIC_PAD_BOTTOM]}>
                 {topicText}
               </Text>
             </Rect>
