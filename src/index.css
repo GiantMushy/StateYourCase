@@ -81,3 +81,12 @@ body {
   85% { opacity: 1; }
   100% { opacity: 0; }
 }
+
+/* Debate Time counter: the last seconds of a turn pulse red. */
+.counter-warn {
+  animation: counter-warn 1s ease-in-out infinite;
+}
+@keyframes counter-warn {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}

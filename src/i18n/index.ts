@@ -28,6 +28,7 @@ const CODE_STRINGS = {
   Setting_dm_shuffle: { en: 'DM Shuffle', is: 'DM Stokkun' },
   Settings_locked: { en: 'Locked until the game ends', is: 'Læst þar til leiknum lýkur' },
   Settings_dm_shuffle_teams: { en: 'DM Shuffle needs every team to be one player', is: 'DM Stokkun krefst eins leikmanns í hverju liði' },
+  DM_all_groups_done: { en: 'Every group has made its case', is: 'Allir hópar hafa flutt mál sitt' },
   DM_shuffle_drop_error: { en: 'DM Shuffle is on: teams can only have one player', is: 'DM Stokkun er á: aðeins einn leikmaður í hverju liði' },
 } satisfies Record<string, Entry>
 
