@@ -48,7 +48,7 @@ function MiniTape({ name, state }: { name: string; state: 'played' | 'loaded' | 
         )}
       </svg>
       {!loaded && (
-        <Text a={[0, 1, 1, 1]} pivot={[0.5, 1]} pos={[0, -12]} size={[-36, 56]} auto={[22, 36]} color="#282828FF" nowrap>
+        <Text a={[0, 1, 1, 1]} pivot={[0.5, 1]} pos={[0, -12]} size={[-36, 56]} auto={[18, 36]} color="#282828FF" ls={-20}>
           {name}
         </Text>
       )}

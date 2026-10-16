@@ -14,6 +14,9 @@ import { CARD_SPRITE, TEXT_COLOR } from '../corruption/style'
 /** Inspector stolenDimAlpha (CanvasGroup on the card root, so the overlay dims too). */
 const STOLEN_DIM_ALPHA = 0.55
 
+/** Keeps a long name clear of the points badge (Unity's 13.7 let it run underneath). */
+const NAME_MARGIN_RIGHT = 95
+
 /** Inspector toggle colours: checkbox border + checkmark, and checkbox face. */
 const TOGGLE_COLORS: Record<CorruptionType, { border: string; background: string }> = {
   Speech: { border: '#019406FF', background: '#60FB8DFF' },
@@ -36,7 +39,7 @@ export function ObjectiveCard({ player, corruption }: { player: Player; corrupti
   return (
     <Rect flow size={[800, 400]} style={{ opacity: accused ? STOLEN_DIM_ALPHA : 1 }}>
       <Img sprite={CARD_SPRITE[corruption.type]} sliced ppu={1.8} />
-      <Text a={[0, 1, 1, 1]} pos={[-112.81, -50.3]} size={[-225.61, 100.6]} fontSize={55} color={textColor} align="Left" margin={[34.343, 9.616, 13.737, 0]}>
+      <Text a={[0, 1, 1, 1]} pos={[-112.81, -50.3]} size={[-225.61, 100.6]} auto={[30, 55]} color={textColor} align="Left" margin={[34.343, 9.616, NAME_MARGIN_RIGHT, 0]} nowrap>
         {player.name}
       </Text>
       <Text a={[0, 0, 1, 0]} pos={[0, 160.91]} size={[0, 321.82]} fontSize={45} color={textColor} align="Left" margin={[31.595, 0, 27.474, 35.717]}>
