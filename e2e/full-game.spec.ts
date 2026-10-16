@@ -54,7 +54,7 @@ async function playRound(page: Page) {
     await page.getByTestId('timer-play').click()
     await page.waitForTimeout(400)
     await page.getByTestId('timer-stop').click()
-    await page.waitForTimeout(800)
+    await page.waitForTimeout(1200) // tape swap
   }
   await tap(page, 'Next')
 

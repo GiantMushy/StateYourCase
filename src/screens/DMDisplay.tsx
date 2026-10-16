@@ -1,38 +1,44 @@
 // "Debate Time" — the DM's screen while groups present (Unity DMDisplayController). One
-// vertical ScrollRect holds the topic, the presenting group's card, the per-group timer and a
-// three-panel objective area (Accusation | Active | Inactive) switched by icon tabs.
-// Ending a turn (Stop, or the timer reaching 0) slides in the next group; after the last
-// group the timer locks and Next proceeds to voting.
-import { useEffect, useRef, useState } from 'react'
+// vertical ScrollRect holds the topic, a cassette deck (the timer, with the presenting group as
+// the loaded tape), the turn-order tape rack and a three-panel objective area
+// (Accusation | Active | Inactive) switched by icon tabs.
+// Ending a turn (Stop, or the timer reaching 0) ejects the tape and drops in the next group's;
+// after the last group the deck is left empty and locked, and Next proceeds to voting.
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { CONFIG } from '../game/config'
 import * as M from '../game/model'
 import { useGame } from '../game/store'
 import type { Corruption, CorruptionType, Player } from '../game/types'
 import { useLang, useT } from '../i18n'
-import { clamp01, lerp, tween } from '../ui/anim'
+import { clamp01, easeInCubic, easeInOutCubic, easeOutCubic, lerp, tween } from '../ui/anim'
 import { Button3D } from '../ui/Button3D'
 import { Img } from '../ui/Img'
 import { Rect, STRETCH } from '../ui/Rect'
 import { Screen } from '../ui/Screen'
 import { Text } from '../ui/Text'
 import { AccusationPanel } from './dm/AccusationPanel'
-import { GroupCard } from './dm/GroupCard'
-import { groupCardHeight } from './dm/groupCardLayout'
+import { Cassette, CASSETTE_H, CASSETTE_W, type CassetteProps } from './dm/Cassette'
+import { CassetteDeck, DECK_H, DECK_W } from './dm/CassetteDeck'
 import { NoCorruptionsCard, ObjectiveCard } from './dm/ObjectiveCard'
 import { ObjectiveTabs, type ObjectiveTab } from './dm/ObjectiveTabs'
 import { formatTime, type TimerState } from './dm/timer'
-import { TimerPanel } from './dm/TimerPanel'
+import { TapeRack } from './dm/TapeRack'
 import { useSettle } from './dm/useSettle'
 
-/** Inspector slideDuration for the group-card swap and timer rewind. */
-const SLIDE_DURATION = 0.45
-/** Width of the masked group card area (the slide distance). */
-const CARD_AREA_W = 850
-/**
- * Inspector slideInCurve is flat at 1 (keys (0,1) and (1,1)), so the incoming card snaps into
- * place on the first frame and covers the outgoing card as it slides out underneath.
- */
-const slideInCurve: (t: number) => number = () => 1
+/** Tape swap (eject → pull out → slide in → drop), and the counter rewind over it. */
+const SWAP_DURATION = 0.9
+/** How far a tape travels sideways to leave/enter the screen. */
+const SWAP_DISTANCE = 1150
+/** How high a tape is held above the well while it's out. */
+const LIFT = 44
+const easeOutBack = (u: number) => 1 + 2.4 * Math.pow(u - 1, 3) + 1.4 * Math.pow(u - 1, 2)
+/** Topic box: Unity's fixed size is the maximum; header height, text margins and padding. */
+const TOPIC_MAX_H = 541.18
+const TOPIC_HEADER_H = 125.5
+const TOPIC_MARGIN_X = 34.824 + 31.922
+const TOPIC_PAD_BOTTOM = 10.157
+const TOPIC_PAD_Y = 50
+
 /** Inspector objectivesSlideOffset / objectivesSlideSpeed. */
 const TRACK_OFFSET: Record<ObjectiveTab, number> = { Accusation: 1000, Active: 0, Inactive: -1000 }
 const TRACK_SPEED = 8
@@ -68,36 +74,46 @@ export function DMDisplay() {
     setTime(formatTime(seconds))
   }
 
-  /** Non-null while the next group's card slides in (Unity isTransitioning). */
-  const [slide, setSlide] = useState<{ next: number; t: number } | null>(null)
-  const cancelSlide = useRef<(() => void) | null>(null)
-  useEffect(() => () => cancelSlide.current?.(), [])
+  /**
+   * Non-null while tapes are swapped (Unity isTransitioning): the loaded tape ejects and leaves,
+   * the next group's tape (if any) drops in, and the counter rewinds to full meanwhile.
+   */
+  const [swap, setSwap] = useState<{ to: number | null; t: number } | null>(null)
+  const cancelSwap = useRef<(() => void) | null>(null)
+  useEffect(() => () => cancelSwap.current?.(), [])
+  // The deck dips as a tape lands in it.
+  const deckRef = useRef<HTMLDivElement>(null)
+  const [landed, setLanded] = useState(0)
+  useEffect(() => {
+    if (landed) deckRef.current?.animate([{ translate: '0 0' }, { translate: '0 10px' }, { translate: '0 0' }], { duration: 180, easing: 'ease-out' })
+  }, [landed])
 
-  /** SlideInNextGroup: swap cards and rewind the timer display to full over the same tween. */
-  const slideTo = (next: number) => {
-    setTimerState('Stopped')
+  const swapTo = (to: number | null) => {
+    setTimerState(to === null ? 'AllGroupsDone' : 'Stopped')
     const from = remaining.current
-    setSlide({ next, t: 0 })
-    cancelSlide.current = tween(
-      SLIDE_DURATION,
+    setSwap({ to, t: 0 })
+    cancelSwap.current = tween(
+      SWAP_DURATION,
       (raw) => {
         const u = clamp01(raw)
-        setSlide({ next, t: u })
-        showTime(lerp(from, CONFIG.timerDuration, u))
+        setSwap({ to, t: u })
+        if (to !== null) showTime(lerp(from, CONFIG.timerDuration, easeInOutCubic(u)))
       },
       () => {
-        cancelSlide.current = null
-        showTime(CONFIG.timerDuration)
-        setGroupIndex(next)
-        setSlide(null)
+        cancelSwap.current = null
+        if (to !== null) {
+          showTime(CONFIG.timerDuration)
+          setLanded((n) => n + 1)
+        }
+        setGroupIndex(to ?? groups.length)
+        setSwap(null)
       },
     )
   }
 
   const advanceToNextGroup = () => {
     const next = groupIndex + 1
-    if (next < groups.length) slideTo(next)
-    else setTimerState('AllGroupsDone')
+    swapTo(next < groups.length ? next : null)
   }
   const advanceRef = useRef(advanceToNextGroup)
   advanceRef.current = advanceToNextGroup
@@ -120,15 +136,15 @@ export function DMDisplay() {
   }, [timerState])
 
   const onPlay = () => {
-    if (slide) return
+    if (swap) return
     if (timerState === 'Stopped' || timerState === 'Paused') setTimerState('Running')
   }
   const onPause = () => {
-    if (slide || timerState !== 'Running') return
+    if (swap || timerState !== 'Running') return
     setTimerState('Paused')
   }
   const onStop = () => {
-    if (slide) return
+    if (swap) return
     if (timerState === 'Running' || timerState === 'Paused') advanceToNextGroup()
   }
 
@@ -157,10 +173,37 @@ export function DMDisplay() {
   const isVersus = topic?.type !== 'Scenarios'
   const topicText = topic ? (lang === 'is' && topic.descriptionIs ? topic.descriptionIs : topic.description) : 'No topic selected.'
 
-  const current = groups[groupIndex]
+  // The topic box hugs its text (plus padding), up to the Unity size.
+  const topicRef = useRef<HTMLDivElement>(null)
+  const topicMeasureRef = useRef<HTMLDivElement>(null)
+  const [topicH, setTopicH] = useState(TOPIC_MAX_H)
+  useLayoutEffect(() => {
+    const fit = () => {
+      const box = topicRef.current
+      const text = topicMeasureRef.current
+      if (!box || !text || !box.offsetWidth) return
+      // Ratio to the known box width, so the result is in canvas units whatever the zoom.
+      const textH = (text.offsetHeight * 850) / box.offsetWidth
+      setTopicH(Math.min(TOPIC_MAX_H, TOPIC_HEADER_H + TOPIC_PAD_Y * 2 + textH + TOPIC_PAD_BOTTOM))
+    }
+    fit()
+    let live = true
+    document.fonts?.ready.then(() => live && fit())
+    return () => {
+      live = false
+    }
+  }, [topicText])
+
   const playersOf = (groupId: number) => M.playersInGroup(game, groupId)
-  // The card area keeps the outgoing card's height until the slide finishes.
-  const cardAreaH = current ? groupCardHeight(playersOf(current.id).length) : 0
+  const current = groups[groupIndex]
+  const incoming = swap?.to != null ? groups[swap.to] : undefined
+  const u = swap?.t ?? 0
+  // Outgoing tape: pops up out of the well, then is pulled off to the left.
+  const lift = easeOutBack(clamp01(u / 0.28))
+  const exit = easeInCubic(clamp01((u - 0.22) / 0.4))
+  // Incoming tape: slides in from the right held above the well, then drops into it.
+  const enter = easeOutCubic(clamp01((u - 0.4) / 0.38))
+  const drop = easeInCubic(clamp01((u - 0.8) / 0.2))
 
   return (
     <Screen>
@@ -180,8 +223,25 @@ export function DMDisplay() {
           </Rect>
 
           {/* Active Topic */}
-          <Rect flow size={[850, 541.18]}>
+          <Rect ref={topicRef} flow size={[850, topicH]}>
             <Img sprite="Button Background Square" color="#FFFFFF32" sliced spritePpu={180} />
+            {/* Measures the topic at full size to fit the box to it. */}
+            <div
+              ref={topicMeasureRef}
+              aria-hidden
+              style={{
+                position: 'absolute',
+                visibility: 'hidden',
+                width: 850 - TOPIC_MARGIN_X,
+                fontFamily: 'Iceland, sans-serif',
+                fontSize: 75,
+                lineHeight: 54.32 / 56,
+                whiteSpace: 'pre-wrap',
+                overflowWrap: 'break-word',
+              }}
+            >
+              {topicText}
+            </div>
             <Rect a={[0, 1, 1, 1]} pos={[0, -62.75]} size={[0, 125.5]}>
               <Img sprite="Rectangle 117" color="#424242FF" sliced />
               <Img sprite="Rectangle 120" color="#282828FF" sliced />
@@ -193,27 +253,60 @@ export function DMDisplay() {
               <Img pos={[-199, isVersus ? 0 : -6]} size={[80, 80]} sprite={isVersus ? 'swords_icon' : 'theater_icon'} color="#F5F5F5FF" />
             </Rect>
             <Rect a={STRETCH} pos={[0, -62.75]} size={[0, -125.51]}>
-              <Text auto={[55, 75]} color="#414141FF" margin={[34.824, 0, 31.922, 10.157]}>
+              <Text auto={[55, 75]} color="#414141FF" margin={[34.824, 0, 31.922, TOPIC_PAD_BOTTOM]}>
                 {topicText}
               </Text>
             </Rect>
             <Img sprite="Button Border Pressed Square" color="#282828FF" sliced spritePpu={180} />
           </Rect>
 
-          {/* Group Container (RectMask2D) */}
-          <Rect flow size={[CARD_AREA_W, cardAreaH]} style={{ overflow: 'hidden' }}>
-            {current && <GroupCard key={current.id} group={current} players={playersOf(current.id)} x={slide ? lerp(0, -CARD_AREA_W, slide.t) : 0} />}
-            {slide && (
-              <GroupCard
-                key={groups[slide.next].id}
-                group={groups[slide.next]}
-                players={playersOf(groups[slide.next].id)}
-                x={lerp(CARD_AREA_W, 0, slideInCurve(slide.t))}
+          <CassetteDeck
+            ref={deckRef}
+            flow
+            size={[DECK_W, DECK_H]}
+            time={timerState === 'AllGroupsDone' && !swap ? '--:--' : time}
+            seconds={remaining.current}
+            state={timerState}
+            onPlay={onPlay}
+            onStop={onStop}
+            onPause={onPause}
+          >
+            {current && (
+              <TapeInWell
+                key={current.id}
+                group={current}
+                players={playersOf(current.id)}
+                spinning={timerState === 'Running'}
+                x={-SWAP_DISTANCE * exit}
+                lift={swap ? lift : 0}
+                rot={-10 * exit}
               />
             )}
-          </Rect>
+            {incoming && (
+              <TapeInWell
+                key={incoming.id}
+                group={incoming}
+                players={playersOf(incoming.id)}
+                spinning={false}
+                x={SWAP_DISTANCE * (1 - enter)}
+                lift={1 - drop}
+                rot={8 * (1 - enter)}
+              />
+            )}
+            {timerState === 'AllGroupsDone' && (
+              <Text
+                a={STRETCH}
+                fontSize={70}
+                color="#9E9E9EFF"
+                margin={[60, 0, 60, 0]}
+                style={{ opacity: swap ? clamp01((u - 0.6) / 0.4) : 1 }}
+              >
+                {t('DM_all_groups_done')}
+              </Text>
+            )}
+          </CassetteDeck>
 
-          <TimerPanel flow size={[850, 354.69]} time={time} state={timerState} onPlay={onPlay} onStop={onStop} onPause={onPause} />
+          <TapeRack groups={groups} current={swap ? (swap.to ?? groups.length) : groupIndex} />
 
           {/* Objectives: wider than the viewport; the off-screen panels are clipped by it.
               Hidden entirely (with accusations) when Secret Objectives are off. */}
@@ -232,7 +325,7 @@ export function DMDisplay() {
         </div>
       </div>
 
-      {timerState === 'AllGroupsDone' && <Button3D pos={[0, -750]} size={[750, 200]} label={t('Next')} onClick={startVotingSequence} />}
+      {timerState === 'AllGroupsDone' && !swap && <Button3D pos={[0, -750]} size={[750, 200]} label={t('Next')} onClick={startVotingSequence} />}
     </Screen>
   )
 }
@@ -248,5 +341,19 @@ function ObjectiveColumn({ x, entries, showEmptyCard }: { x: number; entries: Ob
         {showEmptyCard && entries.length === 0 && <NoCorruptionsCard />}
       </div>
     </Rect>
+  )
+}
+
+/** A tape laid in the deck's well: x/rot move it, lift (0–1) holds it up off the well. */
+function TapeInWell({ x, lift, rot, ...tape }: Omit<CassetteProps, 'pos' | 'size'> & { x: number; lift: number; rot: number }) {
+  return (
+    <Cassette
+      {...tape}
+      pos={[x, LIFT * lift]}
+      size={[CASSETTE_W, CASSETTE_H]}
+      rot={rot}
+      scale={1 + 0.04 * lift}
+      style={{ filter: lift > 0 ? `drop-shadow(0 ${8 + 30 * lift}px ${6 + 16 * lift}px rgba(0, 0, 0, ${0.25 + 0.15 * lift}))` : undefined }}
+    />
   )
 }

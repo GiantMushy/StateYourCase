@@ -2,14 +2,16 @@
 // accusing player → pick the accused (only they stay red) → resolve with Correct/Incorrect.
 // Clicking the accuser again cancels; clicking the target again deselects it. Each player
 // may accuse once per round (Player.hasAccused disables their button).
-import { useState } from 'react'
+// Choosing the accuser swings their gavel; a correct call has the finger poke the accused's
+// name before the points are taken; a wrong call shakes the accuser's name as it fades out.
+import { useEffect, useRef, useState } from 'react'
 import * as M from '../../game/model'
 import { useGame } from '../../game/store'
 import { useT } from '../../i18n'
 import { Rect, type RectProps } from '../../ui/Rect'
 import { Text } from '../../ui/Text'
 import { AcceptButton } from './AcceptButton'
-import { PlayerAccButton } from './PlayerAccButton'
+import { PlayerAccButton, POKE_MS } from './PlayerAccButton'
 
 /** The scene has eight player buttons (Player1 → Player8); extra players are not listed. */
 const MAX_BUTTONS = 8
@@ -23,22 +25,44 @@ export function AccusationPanel(rect: RectProps) {
   const game = useGame((s) => s.game)
   const update = useGame((s) => s.update)
   const [step, setStep] = useState<Step>({ kind: 'Default' })
+  /** Gavel swing / finger poke triggers: whose button, and a counter to re-fire. */
+  const [strike, setStrike] = useState({ id: -1, n: 0 })
+  const [poke, setPoke] = useState({ id: -1, n: 0 })
+  const [shake, setShake] = useState({ id: -1, n: 0 })
+  const [poking, setPoking] = useState(false)
+  const pokeTimer = useRef(0)
+  useEffect(() => () => clearTimeout(pokeTimer.current), [])
 
   const players = M.nonDmPlayers(game).slice(0, MAX_BUTTONS)
   const name = (id: number) => game.players[id]?.name ?? ''
 
   const onPlayerClicked = (id: number) => {
-    if (step.kind === 'Default') setStep({ kind: 'PlayerSelected', accuser: id })
+    if (poking) return
+    if (step.kind === 'Default') {
+      setStep({ kind: 'PlayerSelected', accuser: id })
+      setStrike((s) => ({ id, n: s.n + 1 }))
+    }
     else if (id === step.accuser) setStep({ kind: 'Default' })
     else if (step.kind === 'TargetSelected' && id === step.target) setStep({ kind: 'PlayerSelected', accuser: step.accuser })
     else setStep({ kind: 'TargetSelected', accuser: step.accuser, target: id })
   }
 
   const resolve = (correct: boolean) => {
-    if (step.kind !== 'TargetSelected') return
+    if (step.kind !== 'TargetSelected' || poking) return
     const { accuser, target } = step
-    update((g) => (correct ? M.resolveCorrectAccusation(g, accuser, target) : M.resolveIncorrectAccusation(g, accuser)))
-    setStep({ kind: 'Default' })
+    if (!correct) {
+      update((g) => M.resolveIncorrectAccusation(g, accuser))
+      setShake((s) => ({ id: accuser, n: s.n + 1 }))
+      setStep({ kind: 'Default' })
+      return
+    }
+    setPoking(true)
+    setPoke((s) => ({ id: target, n: s.n + 1 }))
+    pokeTimer.current = window.setTimeout(() => {
+      setPoking(false)
+      update((g) => M.resolveCorrectAccusation(g, accuser, target))
+      setStep({ kind: 'Default' })
+    }, POKE_MS)
   }
 
   const description =
@@ -50,7 +74,7 @@ export function AccusationPanel(rect: RectProps) {
 
   // Accept buttons are hidden with a CanvasGroup (alpha 0, no raycasts) so they keep their
   // layout slot. Correct needs a target that actually has a corruption.
-  const accepting = step.kind === 'TargetSelected'
+  const accepting = step.kind === 'TargetSelected' && !poking
   const targetHasCorruption = accepting && (game.players[step.target]?.corruptionId ?? -1) >= 0
 
   return (
@@ -64,23 +88,30 @@ export function AccusationPanel(rect: RectProps) {
           {description}
         </Text>
 
-        {players.map((p) => {
+        {players.map((p, index) => {
           const selecting = step.kind !== 'Default'
           const isAccuser = selecting && p.id === step.accuser
           const crossfire =
             step.kind === 'PlayerSelected' ? !isAccuser : step.kind === 'TargetSelected' ? p.id === step.target : false
+          // Once a target is chosen, everyone else steps back until it is deselected or resolved.
+          const bystander = step.kind === 'TargetSelected' && !isAccuser && !crossfire
           return (
             <PlayerAccButton
               key={p.id}
               flow
               size={[700, 110]}
               name={p.name}
-              // Everyone but the accuser shows the pointing hand until the accusation ends.
-              icon={selecting && !isAccuser ? 'point_shadow_0' : 'gavel_icon'}
+              // Red (possible or chosen target) buttons point; white ones keep the gavel.
+              icon={crossfire ? 'point_shadow_0' : 'gavel_icon'}
               crossfire={crossfire}
               // While choosing, every player is a valid target (even ones who already accused).
               disabled={!selecting && p.hasAccused}
+              dimmed={bystander}
               onClick={() => onPlayerClicked(p.id)}
+              index={index}
+              strike={strike.id === p.id ? strike.n : 0}
+              poke={poke.id === p.id ? poke.n : 0}
+              shake={shake.id === p.id ? shake.n : 0}
             />
           )
         })}

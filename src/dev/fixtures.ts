@@ -4,11 +4,15 @@
 //   /?screen=Voting&groups=4      four groups, group-voting phase
 //   /?screen=Scoreboard&round=2   round 2 with committed old scores
 //   /?lang=is                     Icelandic
+//   &wide=1                       widest names allowed (Bjarki and Group 1 → 12 × 'W')
 import { useGame } from '../game/store'
 import * as M from '../game/model'
 import type { Screen } from '../game/types'
+import { CONFIG } from '../game/config'
 
 const NAMES = ['Anna', 'Bjarki', 'Thor', 'Gunna', 'Siggi', 'Lilja', 'Dóri']
+/** 'W' is the widest glyph; both player and group names are capped at 12 characters. */
+const WIDE = 'W'.repeat(CONFIG.maxNameLength)
 
 export function applyDevFixture() {
   const params = new URLSearchParams(location.search)
@@ -19,10 +23,11 @@ export function applyDevFixture() {
 
   const groupCount = Number(params.get('groups') ?? 2)
   const round = Number(params.get('round') ?? 1)
+  const wide = params.get('wide') === '1'
 
   useGame.setState((s) => {
     const g = s.game
-    NAMES.forEach((n, i) => M.addPlayer(g, i, n))
+    NAMES.forEach((n, i) => M.addPlayer(g, i, wide && i === 1 ? WIDE : n))
     s.nextPlayerId = NAMES.length
     g.dmIdOverride = 0
     const layout =
@@ -33,11 +38,11 @@ export function applyDevFixture() {
             [2, 4, 6],
           ]
     layout.forEach((ids, i) => {
-      const group = M.createGroup(g, i === 2 && groupCount === 4 ? 'The Owls' : `Group ${i + 1}`)
+      const group = M.createGroup(g, wide && i === 0 ? WIDE : i === 2 && groupCount === 4 ? 'The Owls' : `Group ${i + 1}`)
       group.position = i % 2 === 0 ? 'Against' : 'For'
       ids.forEach((id) => (g.players[id].groupId = group.id))
     })
-    s.groupsLayout = { dmPlayerId: 0, groups: layout.map((playerIds) => ({ playerIds, customName: '' })), unassigned: [] }
+    s.groupsLayout = { dmPlayerId: 0, groups: layout.map((playerIds, i) => ({ playerIds, customName: wide && i === 0 ? WIDE : '' })), unassigned: [] }
     const give = (pid: number, cid: number) => {
       g.players[pid].corruptionId = cid
       g.usedCorruptionIds.push(cid)

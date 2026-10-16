@@ -14,7 +14,8 @@ npm run build      # production build
 ```
 
 Dev deep links (see `src/dev/fixtures.ts`): `/?screen=DMDisplay`, `/?screen=Voting&groups=4`,
-`/?screen=Scoreboard&round=2`, `/?screen=PlayerMutex&mutex=Anna`, `&lang=is`. They seed the same
+`/?screen=Scoreboard&round=2`, `/?screen=PlayerMutex&mutex=Anna`, `&lang=is`, `&wide=1` (12×'W' player and group names, to test
+text fitting). They seed the same
 players/groups/corruptions as the Unity reference captures.
 
 ## Architecture
@@ -113,6 +114,8 @@ full rounds through the real UI in Chrome (the dev server exposes the store as `
 - Pressed buttons keep an opaque face (Unity's clip faded it to 58%).
 - The selected Versus/Scenario tab is locked down: no hover/press effect.
 - AssignPositions swap buttons press down like the shuffle button (Unity had no transition).
+- DM objective card names auto-shrink and stop short of the points badge (Unity let long names
+  run underneath it).
 - DM voting metric labels keep their native aspect (Unity stretched them into fixed boxes).
 - Scroll views use native scrolling (iOS bounce), not Unity's ScrollRect elasticity/inertia.
 - The back arrow is pinned 159 units from the top (Unity: 900 above centre, which drifts with the
