@@ -48,10 +48,10 @@ Then `npx cap open ios` opens it in Xcode; pick a simulator or a connected iPhon
 ### Uploading to TestFlight
 
 1. `npm run build && npx cap sync ios`, then `npx cap open ios`.
-2. First time only: select the **App** target → **Signing & Capabilities**, tick **Automatically
-   manage signing** and pick the team that owns the app in App Store Connect (the one the Unity
-   build was uploaded with; Xcode → Settings → Accounts must have an Apple ID on it). Commit the
-   resulting `DEVELOPMENT_TEAM` change.
+2. Signing is automatic with team `JCYVP356GX` (set in the project). Xcode → Settings → Accounts
+   must have an Apple ID on that team. If an upload fails with "You do not have required
+   contracts", the account holder has to accept the latest agreement in App Store Connect
+   (Business, or the banner on the home page) first.
 3. Set the build number: **App** target → **General** → **Identity** → **Build**
    (`CURRENT_PROJECT_VERSION`). The first upload of 2.0 can stay at 1; each later upload needs a
    higher number. **Version** (`MARKETING_VERSION`) is 2.0, above the Unity build's 1.60; raise
