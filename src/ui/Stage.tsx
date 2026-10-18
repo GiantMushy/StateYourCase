@@ -15,7 +15,7 @@
 // area (inside the status bar, navigation bar and display cutout) while the backdrop and overlay
 // still cover the whole window. The soft keyboard shrinks the native web view, which would rescale
 // the whole UI, so there the layout keeps its size and pans up to keep the focused field visible.
-import { createContext, useContext, useLayoutEffect, useState, type ReactNode } from 'react'
+import { createContext, useContext, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { nativeLayout } from '../platform'
 
 const REF_W = 1080
@@ -117,7 +117,8 @@ function readInsets(): Insets {
   return { top: px('top'), right: px('right'), bottom: px('bottom'), left: px('left') }
 }
 
-function nextViewport(prev: Viewport | null): Viewport {
+/** `shownPan`: the pan currently on screen, which the field's position includes. */
+function nextViewport(prev: Viewport | null, shownPan = 0): Viewport {
   const width = window.innerWidth
   const height = window.innerHeight
   if (!nativeLayout) return { width, height, safe: NO_INSETS, pan: 0, keyboard: false }
@@ -128,7 +129,7 @@ function nextViewport(prev: Viewport | null): Viewport {
   if (!keyboard) return { width, height, safe: readInsets(), pan: 0, keyboard: false }
   let pan = prev.pan
   if (field) {
-    const bottom = field.getBoundingClientRect().bottom + prev.pan
+    const bottom = field.getBoundingClientRect().bottom + shownPan
     pan = Math.min(Math.max(0, bottom + KEYBOARD_GAP - height), prev.height - height)
   }
   return { ...prev, pan, keyboard }
@@ -159,12 +160,22 @@ export function Stage({ backdrop, overlay, minHeight, bleedX, children }: {
   children: ReactNode
 }) {
   const [vp, setVp] = useState(() => nextViewport(null))
+  // The newest viewport (maybe not rendered yet) and the pan on screen. When the keyboard shows,
+  // focus, resize and inset changes arrive in a burst (all at once on iOS); each must build on the
+  // one before, and measure the field against the pan actually applied.
+  const latest = useRef(vp)
+  const shownPan = useRef(vp.pan)
   useLayoutEffect(() => {
-    const update = () =>
-      setVp((prev) => {
-        const next = nextViewport(prev)
-        return JSON.stringify(next) === JSON.stringify(prev) ? prev : next
-      })
+    shownPan.current = vp.pan
+  }, [vp.pan])
+  useLayoutEffect(() => {
+    // Computed here rather than in a setVp updater: it reads the DOM, and React may replay updaters.
+    const update = () => {
+      const next = nextViewport(latest.current, shownPan.current)
+      if (JSON.stringify(next) === JSON.stringify(latest.current)) return
+      latest.current = next
+      setVp(next)
+    }
     const events = nativeLayout ? ['resize', 'focusin', 'focusout'] : ['resize']
     for (const e of events) window.addEventListener(e, update)
     if (!nativeLayout) return () => window.removeEventListener('resize', update)

@@ -1,5 +1,5 @@
-// Native app glue (Capacitor, see capacitor.config.ts): Android's Back button and the status
-// bar icon colour. The web build skips all of it.
+// Native app glue (Capacitor, see capacitor.config.ts): Android's Back button, the status bar
+// icon colour and the page colour behind the iOS keyboard. The web build skips all of it.
 import { App } from '@capacitor/app'
 import { SystemBars, SystemBarsStyle } from '@capacitor/core'
 import { useGame } from './game/store'
@@ -31,6 +31,9 @@ export function initNative() {
   // the open menu. Above ~0.18 luminance black text has the better contrast.
   let darkIcons: boolean | null = null
   const sync = ({ bgColor, menuOpen }: { bgColor: string; menuOpen: boolean }) => {
+    // iOS tints the window behind its translucent keyboard with the body colour (Keyboard
+    // autoBackdropColor 'dom'), so keep it on the current background.
+    document.body.style.backgroundColor = bgColor.slice(0, 7)
     const dark = !menuOpen && luminance(bgColor) > 0.18
     if (dark === darkIcons) return
     darkIcons = dark
