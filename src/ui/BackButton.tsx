@@ -1,3 +1,4 @@
+import { useEffect, useLayoutEffect, useRef } from 'react'
 import { PHONE_CANVAS } from './Stage'
 import { TintButton } from './TintButton'
 
@@ -10,11 +11,29 @@ export const BACK_BUTTON_TOP = PHONE_CANVAS.height / 2 - 900
 /** Bottom edge of the arrow (512×532 at scale 0.2), from the top of its parent. */
 export const BACK_BUTTON_BOTTOM = BACK_BUTTON_TOP + (532 * 0.2) / 2
 
+/** Click handlers of the mounted back arrows, newest last. */
+const mounted: { current: () => void }[] = []
+
+/** Presses the newest mounted back arrow (Android's Back button); false if there is none. */
+export function pressBackArrow() {
+  const top = mounted[mounted.length - 1]
+  top?.current()
+  return !!top
+}
+
 /**
  * The top-left arrow used on every screen. Top-anchored in its parent: the screen, or the
  * top of a scroll view's content so it scrolls with the title.
  */
 export function BackButton({ onClick }: { onClick: () => void }) {
+  const handler = useRef(onClick)
+  useLayoutEffect(() => {
+    handler.current = onClick
+  })
+  useEffect(() => {
+    mounted.push(handler)
+    return () => void mounted.splice(mounted.indexOf(handler), 1)
+  }, [])
   return (
     <TintButton a={[0.5, 1, 0.5, 1]} pos={[-375, -BACK_BUTTON_TOP]} size={[512, 532]} scale={0.2} image={{ sprite: 'back_0' }} onClick={onClick} />
   )

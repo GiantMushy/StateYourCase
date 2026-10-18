@@ -26,3 +26,10 @@ dist-ssr
 # Playwright
 test-results
 playwright-report
+
+# Android signing: the upload keystore and its passwords never go in git (keep them in a
+# password manager), nor do signed builds.
+*.jks
+*.keystore
+keystore.properties
+android/app/release/

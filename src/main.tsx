@@ -4,6 +4,9 @@ import './index.css'
 import App from './App.tsx'
 import { applyDevFixture } from './dev/fixtures'
 import { useGame } from './game/store'
+import { initNative } from './native'
+
+initNative()
 
 if (import.meta.env.DEV) {
   applyDevFixture()

@@ -125,8 +125,9 @@ function DropdownBody({ id, open, children, innerInset = 50, anchorTop }: {
 export function Menu() {
   const t = useT()
   // The menu lives in the window-wide overlay layer: on a pillarboxed canvas (iPad) it is
-  // anchored to the window's right edge, not the canvas's.
-  const { viewWidth } = useStage()
+  // anchored to the window's right edge, not the canvas's. In the native app the panel runs under
+  // the system bars, with its tab and contents kept inside the safe area.
+  const { viewWidth, safe } = useStage()
   const isOpen = useGame((s) => s.menuOpen)
   const setMenuOpen = useGame((s) => s.setMenuOpen)
   const language = useGame((s) => s.language)
@@ -194,14 +195,14 @@ export function Menu() {
   }
 
   return (
-    <Rect a={[1, 0, 1, 1]} pivot={[1, 0.5]} pos={[0, 0]} size={[MENU_WIDTH, 0]} ref={menuRef} style={{ pointerEvents: 'auto' }}>
+    <Rect a={[1, 0, 1, 1]} pivot={[1, 0.5]} pos={[-safe.right, 0]} size={[MENU_WIDTH, 0]} ref={menuRef} style={{ pointerEvents: 'auto' }}>
       {/* Tap-outside closer; widened so it also covers the side bands of a wide window. */}
       {isOpen && (
         <TintButton a={[0, 0, 0, 1]} pos={[-dismissWidth / 2, 0]} size={[dismissWidth, 0]} onClick={() => setMenuOpen(false)} />
       )}
 
       {/* Unity: size 3096x1392 at scale 0.3, ppu 0.3 — baked into final sizes to avoid scaled 9-slice seams. */}
-      <Rect a={[0, 1, 0, 1]} pivot={[1, 1]} pos={[775.34, 222]} size={[928.93, 417.53]} ref={tabRef}>
+      <Rect a={[0, 1, 0, 1]} pivot={[1, 1]} pos={[775.34, 222 - safe.top]} size={[928.93, 417.53]} ref={tabRef}>
         <TintButton
           a={STRETCH}
           image={{ sprite: 'Button Background Default', color: '#424242FF', sliced: true, ppu: 1, spritePpu: 180 }}
@@ -216,7 +217,7 @@ export function Menu() {
         <Img color="#424242FF" />
         <Img a={STRETCH} pos={[30.29, 0]} size={[60.57, 0]} sprite="Rectangle 110" color="#282828FF" sliced ppu={0.6} spritePpu={180} />
 
-        <div style={{ position: 'absolute', left: 0, right: 0, top: 0, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <div style={{ position: 'absolute', left: 0, right: 0, top: safe.top, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           <Text flow size={[711.98, 262.48]} fontSize={200} color="#F2F2F2FF" margin={[0, 97.755, 0, 15.196]}>
             {t('Menu_play')}
           </Text>
