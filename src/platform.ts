@@ -2,6 +2,7 @@
 import { Capacitor } from '@capacitor/core'
 
 export const isNative = Capacitor.isNativePlatform()
+export const isIOS = Capacitor.getPlatform() === 'ios'
 
 /**
  * Lay the stage out inside the system bars and keep it still under the soft keyboard (see
