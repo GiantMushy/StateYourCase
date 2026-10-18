@@ -1,5 +1,13 @@
 apply plugin: 'com.android.application'
 
+// Release signing: the upload key's file and passwords come from android/keystore.properties
+// (git-ignored; see keystore.properties.example). `npm run android:release` builds the bundle.
+def keystorePropertiesFile = rootProject.file('keystore.properties')
+def keystoreProperties = new Properties()
+if (keystorePropertiesFile.exists()) {
+    keystorePropertiesFile.withInputStream { keystoreProperties.load(it) }
+}
+
 android {
     namespace = "com.angrypuffingames.stateyourcase"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -16,11 +24,34 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        release {
+            if (keystorePropertiesFile.exists()) {
+                // Absolute, or relative to android/.
+                storeFile rootProject.file(keystoreProperties['storeFile'])
+                storePassword keystoreProperties['storePassword']
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
+            }
+        }
+    }
     buildTypes {
         release {
+            if (keystorePropertiesFile.exists()) {
+                signingConfig signingConfigs.release
+            }
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+    }
+}
+
+// Play rejects unsigned bundles: fail early instead. Android Studio's "Generate Signed App Bundle"
+// passes its own key (android.injected.signing.*), so it doesn't need the file.
+gradle.taskGraph.whenReady { graph ->
+    def releasing = graph.allTasks.any { it.project == project && it.name in ['bundleRelease', 'assembleRelease'] }
+    if (releasing && !keystorePropertiesFile.exists() && !project.hasProperty('android.injected.signing.store.file')) {
+        throw new GradleException("Missing android/keystore.properties: copy android/keystore.properties.example and fill in your upload key.")
     }
 }
 

@@ -13,6 +13,7 @@ npm test           # vitest unit tests (game rules)
 npm run build      # production build
 npx cap sync android   # after a build: copy dist/ into the Android app (android/)
 npx cap run android    # build + install on a USB-connected phone (needs the Android SDK)
+npm run android:release   # signed Play bundle (.aab); needs android/keystore.properties
 ```
 
 Dev deep links (see `src/dev/fixtures.ts`): `/?screen=DMDisplay`, `/?screen=Voting&groups=4`,

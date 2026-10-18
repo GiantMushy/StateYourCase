@@ -23,5 +23,12 @@ changing web code, copy the build into it:
 npm run build && npx cap sync android
 ```
 
-Open `android/` in Android Studio to run it on a phone or to build a signed release bundle. The
-upload keystore never goes in git (see `.gitignore`).
+Open `android/` in Android Studio to run it on a phone. For a Play release, copy
+`android/keystore.properties.example` to `android/keystore.properties` (git-ignored), fill in the
+upload key, raise `versionCode` in `android/app/build.gradle`, and run:
+
+```bash
+npm run android:release   # → android/app/build/outputs/bundle/release/app-release.aab
+```
+
+The upload keystore and its passwords never go in git; keep them in a password manager.
