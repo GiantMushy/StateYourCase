@@ -1,0 +1,73 @@
+<!doctype html>
+<!-- Google Play feature graphic (1024×500), rendered by store/capture.mjs from the dev server. -->
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>State Your Case feature graphic</title>
+<style>
+  @font-face {
+    font-family: 'Iceland';
+    src: url('/fonts/Iceland-Regular.ttf') format('truetype');
+  }
+  html, body { margin: 0; }
+  .art {
+    position: relative;
+    width: 1024px;
+    height: 500px;
+    overflow: hidden;
+    background: #48cfcb;
+    font-family: 'Iceland', sans-serif;
+  }
+  /* The game's faint parliament-seat diagrams. */
+  .seats {
+    position: absolute;
+    filter: brightness(0);
+    opacity: 0.09;
+  }
+  .logo {
+    position: absolute;
+    left: 60px;
+    top: 30px;
+    width: 410px;
+  }
+  .tagline {
+    position: absolute;
+    left: 35px;
+    top: 380px;
+    width: 460px;
+    text-align: center;
+    color: #424242;
+    font-size: 38px;
+    line-height: 1;
+  }
+  .phone {
+    position: absolute;
+    width: 216px;
+    height: 432px;
+    border: 9px solid #282828;
+    border-radius: 34px;
+    overflow: hidden;
+    background: #282828;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
+  }
+  .phone img { width: 100%; height: 100%; display: block; border-radius: 25px; }
+</style>
+</head>
+<body>
+  <div class="art">
+    <img class="seats" src="/sprites/German Seats.png" style="left: 430px; top: 250px; width: 420px; transform: rotate(18deg)" />
+    <img class="seats" src="/sprites/EU.png" style="left: -120px; top: -150px; width: 380px; transform: rotate(-12deg)" />
+    <img class="seats" src="/sprites/Hungary.png" style="left: 900px; top: -90px; width: 220px; transform: rotate(30deg)" />
+
+    <img class="logo" src="/sprites/State your Case.png" alt="State your Case" />
+    <div class="tagline">The pass-the-phone<br />party debate game</div>
+
+    <div class="phone" style="left: 556px; top: 58px; transform: rotate(-7deg)">
+      <img src="/store/play/screenshots/02-secret-objective.jpg" alt="" />
+    </div>
+    <div class="phone" style="left: 770px; top: 30px; transform: rotate(6deg)">
+      <img src="/store/play/screenshots/01-debate.jpg" alt="" />
+    </div>
+  </div>
+</body>
+</html>

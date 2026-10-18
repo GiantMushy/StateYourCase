@@ -9,15 +9,22 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "android:release": "npm run build && npx cap sync android && cd android && ./gradlew bundleRelease && echo 'Signed bundle: android/app/build/outputs/bundle/release/app-release.aab'"
   },
   "dependencies": {
+    "@capacitor/android": "^8.5.3",
+    "@capacitor/app": "^8.1.2",
+    "@capacitor/core": "^8.5.3",
+    "@capacitor/ios": "^8.5.3",
+    "@capacitor/keyboard": "^8.0.6",
     "immer": "^10.2.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "zustand": "^5.0.15"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.5.3",
     "@eslint/js": "^9.25.0",
     "@playwright/test": "^1.64.1",
     "@types/react": "^19.1.2",

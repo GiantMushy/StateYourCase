@@ -5,6 +5,7 @@
 //   /?screen=Scoreboard&round=2   round 2 with committed old scores
 //   /?lang=is                     Icelandic
 //   &wide=1                       widest names allowed (Bjarki and Group 1 → 12 × 'W')
+//   &native=1                     native-app layout (safe area, keyboard pan; see platform.ts)
 import { useGame } from '../game/store'
 import * as M from '../game/model'
 import type { Screen } from '../game/types'

@@ -16,7 +16,7 @@ export function Transition() {
   const transition = useGame((s) => s.transition)
   const endTransition = useGame((s) => s.endTransition)
   const [alpha, setAlpha] = useState(0)
-  const { width, height } = useStage()
+  const { width, height, safe } = useStage()
 
   useEffect(() => {
     if (!transition) return
@@ -34,7 +34,8 @@ export function Transition() {
   return (
     <div style={{ position: 'absolute', inset: 0, opacity: alpha }}>
       <Img color="#49CFCBFF" style={{ pointerEvents: 'auto' }} />
-      <Rect size={[width, height]}>
+      {/* Centred on the safe area (the fill also covers the system bars). */}
+      <Rect pos={[(safe.left - safe.right) / 2, (safe.bottom - safe.top) / 2]} size={[width, height]}>
         <Img pos={[0, 400]} size={[332, 265]} scale={2.5} sprite="State your Case" />
         <Rect pos={[0, -347]} size={[449, 448]} scale={0.7} rot={116.702}>
           <div style={{ position: 'absolute', inset: 0, animation: 'spin 7.2s linear infinite reverse' }}>
