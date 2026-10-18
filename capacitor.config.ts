@@ -1,5 +1,5 @@
-// Native app shell (Capacitor): wraps the Vite build (`dist`) in the Android project in `android/`.
-// After changing web code: `npm run build && npx cap sync android`.
+// Native app shell (Capacitor): wraps the Vite build (`dist`) in the Android (`android/`) and iOS (`ios/`) projects.
+// After changing web code: `npm run build && npx cap sync` (android and ios).
 import type { CapacitorConfig } from '@capacitor/cli'
 
 const config: CapacitorConfig = {
@@ -9,6 +9,11 @@ const config: CapacitorConfig = {
   webDir: 'dist',
   // Shown before the page paints: the default teal background.
   backgroundColor: '#48CFCB',
+  ios: {
+    // iPad web views default to desktop-class browsing, whose text autosizing inflates the small
+    // captions (e.g. "Only 1 phone"). Phones and the web build are unaffected.
+    preferredContentMode: 'mobile',
+  },
   plugins: {
     SystemBars: {
       // Edge to edge: the page draws behind the system bars and reads the insets from

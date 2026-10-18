@@ -4,8 +4,8 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
-  // android/ holds a copy of the build (and Gradle output): don't watch it or scan its index.html.
-  server: { watch: { ignored: ['**/android/**'] } },
+  // android/ and ios/ hold copies of the build (and native build output): don't watch them or scan their index.html.
+  server: { watch: { ignored: ['**/android/**', '**/ios/**'] } },
   optimizeDeps: { entries: ['index.html'] },
   test: {
     include: ['src/**/*.test.ts'],
