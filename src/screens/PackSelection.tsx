@@ -207,8 +207,17 @@ export function PackSelection() {
   // The swipe area also covers the side bands.
   const band = (viewWidth - width) / 2
 
-  // Draw order: farthest from the current card first.
-  const order = CARDS.map((_, i) => i).sort((a, b) => Math.abs(b - currentIndex) - Math.abs(a - currentIndex))
+  // Draw order: farthest from the current card first. Cards two or more slots away are invisible,
+  // so the screen opens with just the front card and its neighbours (each card is several large
+  // canvases, slow to bring up on phones) and adds the rest once it has painted.
+  const [allCards, setAllCards] = useState(false)
+  useEffect(() => {
+    const id = setTimeout(() => setAllCards(true), 300)
+    return () => clearTimeout(id)
+  }, [])
+  const order = CARDS.map((_, i) => i)
+    .filter((i) => allCards || Math.abs(i - currentIndex) <= 1 || Math.abs(i - display) < 2)
+    .sort((a, b) => Math.abs(b - currentIndex) - Math.abs(a - currentIndex))
 
   return (
     <Screen>

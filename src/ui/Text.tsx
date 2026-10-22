@@ -69,9 +69,15 @@ export function Text({
     if (!box || !el) return
     const fit = () => {
       const cs = getComputedStyle(box)
-      const availH = box.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) + 0.5
-      const availW = box.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) + 0.5
-      const fits = () => el.scrollHeight <= availH && el.scrollWidth <= availW
+      // Client/scroll sizes are whole CSS pixels rounded after the stage zoom, so in canvas units
+      // each can be off by ~0.5/zoom (≈1.4 on a phone). Allow one rounded pixel either way, or a
+      // label that fits easily can measure a unit or two wider than its box and never "fit".
+      const stage = box.closest<HTMLElement>('.stage, .stage-layer')
+      const tol = Math.max(0.5, 1 / ((stage && parseFloat(getComputedStyle(stage).zoom)) || 1))
+      const availH = box.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) + tol
+      // The text block is stretched to the box's content width; it overflows sideways only when a
+      // line can't wrap, so compare with its own width (same rounding) rather than the box's.
+      const fits = () => el.scrollHeight <= availH && el.scrollWidth <= el.clientWidth + tol
       let lo = autoMin
       let hi = autoMax
       el.style.fontSize = `${hi}px`

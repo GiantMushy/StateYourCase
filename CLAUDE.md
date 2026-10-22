@@ -108,6 +108,13 @@ Original C# lives in `../Partyament/Assets/Scripts`.
   neighbour cards spread out (fully beside the front card when there is room) and the faded-out
   slots are pulled inside the window, so cards fade in/out instead of being cut at an edge.
 - **Line height:** `Text` uses TMP's faceInfo line heights (Iceland 0.97em, Liberation 1.15em).
+- **Measuring under zoom:** `clientWidth`/`scrollWidth`/`scrollHeight` are whole CSS pixels rounded
+  after the stage zoom (~0.36 on a phone), so in canvas units they can be off by ~1/zoom, and by
+  different amounts on different screen sizes. Compare an element with itself where possible and
+  allow that much slack (see `Text` auto-size). Check layout changes on an iPhone 13-size simulator
+  (390×844) as well as a newer one.
+- **Animation cost on phones:** animate `transform`, `opacity` or `clip-path`, not sizes: resizing
+  a sliced `Img` re-lays out and redraws its canvas every frame (see `Button3D`'s base).
 - **Native app (Android, iOS):** the window is edge to edge. `Stage` lays the canvas out in the
   safe area (Android: Capacitor injects `--safe-area-inset-*`; iOS: WKWebView reports
   `env(safe-area-inset-*)` thanks to `viewport-fit=cover`) while the backdrop and overlay cover the
