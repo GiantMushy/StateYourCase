@@ -55,7 +55,7 @@ Then `npx cap open ios` opens it in Xcode; pick a simulator or a connected iPhon
    contracts", the account holder has to accept the latest agreement in App Store Connect
    (Business, or the banner on the home page) first.
 4. Set the build number: **App** target → **General** → **Identity** → **Build**
-   (`CURRENT_PROJECT_VERSION`): one higher than the last upload (2.0 builds 1 and 2 are taken).
+   (`CURRENT_PROJECT_VERSION`): one higher than the last upload (2.0 builds 1–3 are taken).
    **Version** (`MARKETING_VERSION`) is 2.0, above the Unity build's 1.60; raise it only for a new
    release (then the build number can start again at 1).
 5. Set the run destination to **Any iOS Device (arm64)** and choose **Product → Archive**.
