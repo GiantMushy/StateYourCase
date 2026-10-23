@@ -1,0 +1,66 @@
+# iOS simulator smoke test on a GitHub macOS runner: scripts/ios-smoke.sh on a few simulators,
+# screenshots uploaded as the "ios-smoke" artifact. Run by hand (see docs/ios-cloud.md):
+#   gh workflow run ios-smoke.yml
+name: iOS smoke test
+
+on:
+  workflow_dispatch:
+    inputs:
+      devices:
+        description: Simulator models, comma-separated (created on the newest runtime if missing)
+        default: iPhone 17, iPhone 16, iPhone 13, iPad Pro 13-inch (M4)
+      xcode:
+        description: Xcode version to select, e.g. 26.1 (blank = the runner's default)
+        default: ''
+
+jobs:
+  smoke:
+    runs-on: macos-26
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode
+        if: inputs.xcode != ''
+        run: sudo xcode-select -s "/Applications/Xcode_${{ inputs.xcode }}.app"
+
+      - name: Show Xcode and simulator runtimes
+        run: |
+          xcodebuild -version
+          xcrun simctl list runtimes
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      # Writes ios/App/App/public and capacitor.config.json (both git-ignored) and resolves the
+      # Swift packages; the smoke script then swaps in the tour build.
+      - name: Sync the iOS project
+        run: npm run build && npx cap sync ios
+
+      - name: Run the screen tour
+        env:
+          DEVICES: ${{ inputs.devices }}
+        run: |
+          IFS=',' read -ra LIST <<<"$DEVICES"
+          ARGS=()
+          for d in "${LIST[@]}"; do d="$(echo "$d" | xargs)"; [ -n "$d" ] && ARGS+=("$d"); done
+          bash scripts/ios-smoke.sh "${ARGS[@]}"
+          # The script reports timeouts and failed installs in its summary rather than failing.
+          if grep -E 'TIMED OUT|install failed' test-results/ios-smoke/summary.txt; then exit 1; fi
+          [ "$(wc -l <test-results/ios-smoke/summary.txt)" -ge "${#ARGS[@]}" ] ||
+            { echo "Some devices didn't run (unknown model?), see the log above"; exit 1; }
+
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-smoke
+          path: |
+            test-results/ios-smoke/**
+            !test-results/ios-smoke/DerivedData/**
+            !test-results/ios-smoke/sheet
+          if-no-files-found: warn

@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:e2e": "playwright test",
-    "android:release": "npm run build && npx cap sync android && cd android && ./gradlew bundleRelease && echo 'Signed bundle: android/app/build/outputs/bundle/release/app-release.aab'",
+    "android:debug": "npm run build && npx cap sync android && node scripts/gradle.mjs assembleDebug && echo Debug APK: android/app/build/outputs/apk/debug/app-debug.apk",
+    "android:release": "npm run build && npx cap sync android && node scripts/gradle.mjs bundleRelease && echo Signed bundle: android/app/build/outputs/bundle/release/app-release.aab",
     "ios:smoke": "bash scripts/ios-smoke.sh"
   },
   "dependencies": {

@@ -1,0 +1,136 @@
+# Archives the iOS app on a GitHub macOS runner and uploads it to TestFlight. Run by hand after
+# reviewing the smoke test (see docs/ios-cloud.md):
+#   gh workflow run ios-testflight.yml
+# Signing is automatic, through an App Store Connect API key (secrets ASC_KEY_ID, ASC_ISSUER_ID,
+# ASC_KEY_P8); Xcode fetches the profiles and signs the upload with the cloud-managed
+# distribution certificate.
+name: iOS TestFlight
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_number:
+        description: Build number (CFBundleVersion); blank = 100 + this workflow's run number
+        default: ''
+      marketing_version:
+        description: Version (CFBundleShortVersionString); blank = MARKETING_VERSION in the project
+        default: ''
+      xcode:
+        description: Xcode version to select, e.g. 26.1 (blank = the runner's default)
+        default: ''
+
+concurrency: ios-testflight
+
+jobs:
+  testflight:
+    runs-on: macos-26
+    timeout-minutes: 60
+    env:
+      TEAM_ID: JCYVP356GX
+      HAS_DEV_CERT: ${{ secrets.IOS_DEV_CERT_P12 != '' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode
+        if: inputs.xcode != ''
+        run: sudo xcode-select -s "/Applications/Xcode_${{ inputs.xcode }}.app"
+
+      - run: xcodebuild -version
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+      - run: npm test
+      - name: Build the web app into ios/
+        run: npm run build && npx cap sync ios
+
+      - name: Install the App Store Connect API key
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+        run: |
+          [ -n "$ASC_KEY_ID" ] && [ -n "$ASC_KEY_P8" ] && [ -n "${{ secrets.ASC_ISSUER_ID }}" ] ||
+            { echo "Missing ASC_KEY_ID / ASC_ISSUER_ID / ASC_KEY_P8 secrets (see docs/ios-cloud.md)"; exit 1; }
+          echo "$ASC_KEY_P8" | base64 --decode >"$RUNNER_TEMP/AuthKey.p8"
+
+      # Optional: reuse one Apple Development certificate (secrets IOS_DEV_CERT_P12, base64, and
+      # IOS_DEV_CERT_PASSWORD). Without it Xcode makes a new development certificate on every run,
+      # and Apple caps how many a team can have.
+      - name: Import the development certificate
+        env:
+          P12: ${{ secrets.IOS_DEV_CERT_P12 }}
+          P12_PASSWORD: ${{ secrets.IOS_DEV_CERT_PASSWORD }}
+        if: env.HAS_DEV_CERT == 'true'
+        run: |
+          KC=$RUNNER_TEMP/signing.keychain-db
+          KC_PASS=$(uuidgen)
+          echo "$P12" | base64 --decode >"$RUNNER_TEMP/dev.p12"
+          security create-keychain -p "$KC_PASS" "$KC"
+          security set-keychain-settings -lut 21600 "$KC"
+          security unlock-keychain -p "$KC_PASS" "$KC"
+          security import "$RUNNER_TEMP/dev.p12" -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k "$KC"
+          security set-key-partition-list -S apple-tool:,apple: -k "$KC_PASS" "$KC" >/dev/null
+          security list-keychains -d user -s "$KC" $(security list-keychains -d user | tr -d '"')
+          rm "$RUNNER_TEMP/dev.p12"
+
+      - name: Archive
+        env:
+          BUILD: ${{ inputs.build_number }}
+          VERSION: ${{ inputs.marketing_version }}
+        run: |
+          BUILD=${BUILD:-$((100 + ${{ github.run_number }}))}
+          echo "Build number $BUILD"
+          echo "BUILD=$BUILD" >>"$GITHUB_ENV"
+          xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Release \
+            -destination 'generic/platform=iOS' -archivePath "$RUNNER_TEMP/App.xcarchive" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$RUNNER_TEMP/AuthKey.p8" \
+            -authenticationKeyID "${{ secrets.ASC_KEY_ID }}" \
+            -authenticationKeyIssuerID "${{ secrets.ASC_ISSUER_ID }}" \
+            DEVELOPMENT_TEAM="$TEAM_ID" CURRENT_PROJECT_VERSION="$BUILD" \
+            ${VERSION:+MARKETING_VERSION="$VERSION"} \
+            archive | tee "$RUNNER_TEMP/archive.log" | grep -E '^(\*\*|error|warning: .*sign)' || true
+          [ -d "$RUNNER_TEMP/App.xcarchive" ] || { tail -100 "$RUNNER_TEMP/archive.log"; exit 1; }
+
+      # Exporting with destination "upload" signs for the App Store and sends the build to App Store
+      # Connect; it shows up in TestFlight once Apple has processed it.
+      - name: Upload to TestFlight
+        run: |
+          cat >"$RUNNER_TEMP/ExportOptions.plist" <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>destination</key><string>upload</string>
+            <key>teamID</key><string>$TEAM_ID</string>
+            <key>signingStyle</key><string>automatic</string>
+            <key>manageAppVersionAndBuildNumber</key><false/>
+            <key>uploadSymbols</key><true/>
+          </dict>
+          </plist>
+          EOF
+          xcodebuild -exportArchive -archivePath "$RUNNER_TEMP/App.xcarchive" \
+            -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" -exportPath "$RUNNER_TEMP/export" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$RUNNER_TEMP/AuthKey.p8" \
+            -authenticationKeyID "${{ secrets.ASC_KEY_ID }}" \
+            -authenticationKeyIssuerID "${{ secrets.ASC_ISSUER_ID }}"
+          echo "Uploaded build $BUILD" >>"$GITHUB_STEP_SUMMARY"
+
+      - name: Keep the archive log
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: archive-log
+          path: ${{ runner.temp }}/archive.log
+          if-no-files-found: ignore
+
+      - name: Clean up the key and keychain
+        if: always()
+        run: |
+          rm -f "$RUNNER_TEMP/AuthKey.p8"
+          security delete-keychain "$RUNNER_TEMP/signing.keychain-db" 2>/dev/null || true
