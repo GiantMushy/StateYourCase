@@ -45,6 +45,29 @@ function alignStyle(align: TmpAlign): CSSProperties {
   return { justifyContent: v, textAlign: h }
 }
 
+let measure: CanvasRenderingContext2D | null = null
+
+/**
+ * Width of `el`'s widest unbreakable run (a word, or a whole line when wrapping is off) per px
+ * of font size, from canvas text metrics: WebKit under CSS zoom misreports both scrollWidth and
+ * text range sizes for text overflowing sideways. Small caps are approximated as capitals at 70%.
+ */
+function widestRun(el: HTMLElement, nowrap: boolean | undefined, spacingEm: number) {
+  const s = getComputedStyle(el)
+  measure ??= document.createElement('canvas').getContext('2d')!
+  measure.font = `${s.fontStyle} ${s.fontWeight} 100px ${s.fontFamily}`
+  const ctx = measure
+  const text = s.textTransform === 'uppercase' ? (el.textContent ?? '').toUpperCase() : (el.textContent ?? '')
+  const smallCaps = s.fontVariantCaps === 'small-caps' || s.fontVariant.includes('small-caps')
+  const width = (run: string) =>
+    smallCaps
+      ? [...run].reduce((w, ch) => w + ctx.measureText(ch.toUpperCase()).width * (ch === ch.toUpperCase() ? 1 : 0.7), 0)
+      : ctx.measureText(run).width
+  let widest = 0
+  for (const run of text.split(nowrap ? '\n' : /\s+/)) if (run) widest = Math.max(widest, width(run) / 100 + spacingEm * [...run].length)
+  return widest
+}
+
 const toCss = (hex: string) => {
   const c = parseColor(hex)
   // Linear-space blending like Unity (see linearBlend.ts).
@@ -68,24 +91,28 @@ export function Text({
     const el = textRef.current
     if (!box || !el) return
     const fit = () => {
-      const cs = getComputedStyle(box)
+      const boxStyle = getComputedStyle(box)
       // Client/scroll sizes are whole CSS pixels rounded after the stage zoom, so in canvas units
       // each can be off by ~0.5/zoom (≈1.4 on a phone). Allow one rounded pixel either way, or a
       // label that fits easily can measure a unit or two wider than its box and never "fit".
       const stage = box.closest<HTMLElement>('.stage, .stage-layer')
       const tol = Math.max(0.5, 1 / ((stage && parseFloat(getComputedStyle(stage).zoom)) || 1))
-      const availH = box.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) + tol
-      // The text block is stretched to the box's content width; it overflows sideways only when a
-      // line can't wrap, so compare with its own width (same rounding) rather than the box's.
-      const fits = () => el.scrollHeight <= availH && el.scrollWidth <= el.clientWidth + tol
+      const availH = box.clientHeight - parseFloat(boxStyle.paddingTop) - parseFloat(boxStyle.paddingBottom) + tol
+      // The text block is stretched to the box's content width. A size only fits if its widest
+      // word (or line, unwrapped) fits that width too, so text shrinks before a word is split. Here
+      // the rounding slack counts against the word: line breaking uses the exact width.
+      const availW = el.clientWidth - tol
+      const widest = widestRun(el, nowrap, cs / 100)
+      const fits = (size: number) => {
+        el.style.fontSize = `${size}px`
+        return el.scrollHeight <= availH && widest * size <= availW
+      }
+      if (fits(autoMax)) return
       let lo = autoMin
       let hi = autoMax
-      el.style.fontSize = `${hi}px`
-      if (fits()) return
       for (let i = 0; i < 10; i++) {
         const mid = (lo + hi) / 2
-        el.style.fontSize = `${mid}px`
-        if (fits()) lo = mid
+        if (fits(mid)) lo = mid
         else hi = mid
       }
       el.style.fontSize = `${lo}px`
@@ -94,7 +121,7 @@ export function Text({
     const ro = new ResizeObserver(fit)
     ro.observe(box)
     return () => ro.disconnect()
-  }, [autoMin, autoMax, children, cs, smallCaps, upper])
+  }, [autoMin, autoMax, children, cs, smallCaps, upper, nowrap])
 
   const base: CSSProperties = hasRect ? rectStyle({ a, pivot, pos, size, scale, rot, flow }) : { position: 'absolute', inset: 0 }
   return (

@@ -21,6 +21,8 @@ async function tap(page: Page, text: string | RegExp, which: 'first' | 'last' = 
   await expect(el).toBeVisible()
   const box = (await el.boundingBox())!
   await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2)
+  // 3D buttons click once their push-down has played (ui/slab.ts PRESS), not on release.
+  await page.waitForTimeout(150)
 }
 
 async function playRound(page: Page) {

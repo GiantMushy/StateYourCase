@@ -203,7 +203,6 @@ function SmallButton({ label, onClick }: { label: string; onClick: () => void })
       flow
       size={[350, 150]}
       spritePpu={140}
-      face={{ pos: [0, 3.185], size: [-10, -16.37] }}
       outline={{ pos: [0, 5.685], size: [0, -11.37] }}
       textRect={{ pos: [0, 8.765], size: [0, -17.54] }}
       text={{ fontSize: 75, auto: undefined, margin: [0, 0, 0, 0] }}

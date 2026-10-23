@@ -63,6 +63,8 @@ in the code is a Unity canvas unit**. Copy Inspector numbers directly.
 - `Text` — TextMeshPro. `fontSize`, `auto=[min,max]`, `color`, `align` (TMP names: `Center`,
   `Left`, `TopLeft`, `MidlineLeft`…), `margin=[l,t,r,b]`, `cs` (characterSpacing), `ls`, `smallCaps`.
 - `Button3D` — the chunky "Button Default" animator button (press-down, disabled tint, hover 1.05).
+  Drawn with CSS borders/shadows from the sprites' geometry (`ui/slab.ts`), not 9-slice bitmaps;
+  only its cap moves (a transform). `CassettButton` (timer keys) is built the same way.
 - `TintButton` — Unity ColorTint button (brightness 0.96 hover / 0.78 pressed, 0.1s fade).
 - `useButton` — Unity Selectable pointer semantics (click on release inside; leaving cancels).
 - `useDragGesture` / `dropTargetAt` / `DragGhost` — card drag & drop with Unity thresholds.
@@ -113,8 +115,14 @@ Original C# lives in `../Partyament/Assets/Scripts`.
   different amounts on different screen sizes. Compare an element with itself where possible and
   allow that much slack (see `Text` auto-size). Check layout changes on an iPhone 13-size simulator
   (390×844) as well as a newer one.
-- **Animation cost on phones:** animate `transform`, `opacity` or `clip-path`, not sizes: resizing
-  a sliced `Img` re-lays out and redraws its canvas every frame (see `Button3D`'s base).
+- **Animation cost on phones:** animate `transform` or `opacity`, not sizes: resizing a sliced
+  `Img` re-lays out and redraws its canvas every frame. Don't stack separately sliced `Img`s with
+  edges in the same place (e.g. a face flush with its outline): each canvas snaps to device pixels
+  on its own, so on some screen sizes one edge peeks out as a light line. `ui/slab.ts` draws such
+  shapes in CSS instead.
+- **Auto-size words:** `Text` auto-size only accepts a size if the widest word fits on its line
+  (measured with canvas text metrics: under CSS zoom WebKit misreports sideways overflow), so text
+  shrinks before a word is split.
 - **Native app (Android, iOS):** the window is edge to edge. `Stage` lays the canvas out in the
   safe area (Android: Capacitor injects `--safe-area-inset-*`; iOS: WKWebView reports
   `env(safe-area-inset-*)` thanks to `viewport-fit=cover`) while the backdrop and overlay cover the
@@ -128,6 +136,11 @@ Original C# lives in `../Partyament/Assets/Scripts`.
   (or turn off I/O → Keyboard → Connect Hardware Keyboard) to test the pan.
 
 ## Tests
+
+**Before any TestFlight build, run `npm run ios:smoke`** (`scripts/ios-smoke.sh`): it builds a
+screen-tour app (`VITE_TOUR=1`, `src/dev/tour.ts`), runs it on every installed iPhone/iPad model and
+an iPhone 13, and saves each screen plus a held 3D button to `test-results/ios-smoke/<device>/`
+(with a `sheet.png` contact sheet). Review the sheets, then play a round on a simulator by hand.
 
 `npm test` covers the rules in `model.ts` and the voting ballot logic. `npm run test:e2e` plays three
 full rounds through the real UI in Chrome (the dev server exposes the store as `window.__game`).
@@ -151,6 +164,10 @@ full rounds through the real UI in Chrome (the dev server exposes the store as `
 - AssignPositions scrolls only until the last team reaches mid-screen (Unity's Group List was a
   fixed 3000 tall).
 - Online screens are visual only — networking was never implemented in Unity either.
+- 3D buttons push down over 120 ms (eased) and release over 180 ms; a quick tap stays down until the
+  push has played, then clicks (Unity snapped in 0.05 s and clicked on release). Unity's sprites
+  are reproduced in CSS, so the outline can't drift off the face on some screen sizes.
+- Metric captions shrink to 70 (Unity 100) so long Icelandic names fit on one line.
 - Native apps: the status bar (and Android's navigation bar) stays visible (Unity ran fullscreen),
   so the canvas is a little shorter than the screen. Android's Back button closes the menu, else
   presses the screen's back arrow; screens without one ignore it, and the title screen leaves the

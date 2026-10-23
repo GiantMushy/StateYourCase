@@ -26,13 +26,14 @@ interface CardDef {
 }
 
 // Scene order = draw order. Caption margins/auto-size ranges differ per card in the scene
-// (Enthusiasm's 1500 max is a scene typo, kept: width limits it anyway).
+// (Enthusiasm's 1500 max is a scene typo, kept: width limits it anyway). The minimum is 70, not
+// the scene's 100, so long Icelandic names ("Sköpunargáfu") fit on one line instead of breaking.
 const CARDS: CardDef[] = [
-  { metric: 'Comedy', label: 'Comedy', home: [-210, -312], caption: { auto: [100, 150], margin: [28.578, 0, 31.436, 0] } },
-  { metric: 'Creativity', label: 'Creativity', home: [223, -312], caption: { auto: [100, 150], margin: [43.093, 0, 45.966, 0] } },
-  { metric: 'OnTopic', label: 'On_topic', home: [-210, -463], caption: { auto: [100, 150], margin: [40.22, 0, 45.966, 0] } },
-  { metric: 'Factual', label: 'Factual', home: [223, -463], caption: { auto: [100, 150], margin: [54.299, 0, 48.583, 0] } },
-  { metric: 'Enthusiasm', label: 'Enthusiasm', home: [6.5, -614], caption: { auto: [100, 1500], margin: [40.009, 0, 42.867, 0] } },
+  { metric: 'Comedy', label: 'Comedy', home: [-210, -312], caption: { auto: [70, 150], margin: [28.578, 0, 31.436, 0] } },
+  { metric: 'Creativity', label: 'Creativity', home: [223, -312], caption: { auto: [70, 150], margin: [43.093, 0, 45.966, 0] } },
+  { metric: 'OnTopic', label: 'On_topic', home: [-210, -463], caption: { auto: [70, 150], margin: [40.22, 0, 45.966, 0] } },
+  { metric: 'Factual', label: 'Factual', home: [223, -463], caption: { auto: [70, 150], margin: [54.299, 0, 48.583, 0] } },
+  { metric: 'Enthusiasm', label: 'Enthusiasm', home: [6.5, -614], caption: { auto: [70, 1500], margin: [40.009, 0, 42.867, 0] } },
 ]
 
 const SLOT_POS: [V2, V2] = [

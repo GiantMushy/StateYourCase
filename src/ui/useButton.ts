@@ -1,7 +1,7 @@
 // Unity Selectable/Button pointer semantics: pressed while held, click on release inside,
 // cancelled when the pointer leaves (ButtonDragFix) or moves past the EventSystem drag
 // threshold (so scroll gestures don't click). Hover only for mouse pointers.
-import { useRef, useState, type PointerEvent } from 'react'
+import { useEffect, useRef, useState, type PointerEvent } from 'react'
 
 export type ButtonVisual = 'normal' | 'highlighted' | 'pressed' | 'selected' | 'disabled'
 
@@ -15,12 +15,19 @@ export interface UseButtonOptions {
   selected?: boolean
   /** Fires on pointer down instead of release (Unity IPointerDownHandler buttons). */
   onPress?: () => void
+  /**
+   * Shortest press, in ms: a quicker tap stays pressed until then and clicks at the end, so the
+   * push-down animation always plays in full before the click (which often changes the screen).
+   */
+  minPressMs?: number
 }
 
-export function useButton({ onClick, disabled, selected, onPress }: UseButtonOptions) {
+export function useButton({ onClick, disabled, selected, onPress, minPressMs = 0 }: UseButtonOptions) {
   const [pressed, setPressed] = useState(false)
   const [hover, setHover] = useState(false)
-  const start = useRef<{ x: number; y: number; id: number } | null>(null)
+  const start = useRef<{ x: number; y: number; id: number; t: number } | null>(null)
+  const pending = useRef(0)
+  useEffect(() => () => clearTimeout(pending.current), [])
 
   const cancel = () => {
     start.current = null
@@ -29,8 +36,8 @@ export function useButton({ onClick, disabled, selected, onPress }: UseButtonOpt
 
   const handlers = {
     onPointerDown: (e: PointerEvent) => {
-      if (disabled || e.button !== 0) return
-      start.current = { x: e.clientX, y: e.clientY, id: e.pointerId }
+      if (disabled || e.button !== 0 || pending.current) return
+      start.current = { x: e.clientX, y: e.clientY, id: e.pointerId, t: performance.now() }
       setPressed(true)
       onPress?.()
     },
@@ -42,8 +49,19 @@ export function useButton({ onClick, disabled, selected, onPress }: UseButtonOpt
     onPointerUp: (e: PointerEvent) => {
       const s = start.current
       if (!s || s.id !== e.pointerId) return
-      cancel()
-      if (!disabled) onClick?.()
+      const wait = minPressMs - (performance.now() - s.t)
+      if (wait <= 0) {
+        cancel()
+        if (!disabled) onClick?.()
+        return
+      }
+      // Too quick: hold the pressed look until the push has played, then release and click.
+      start.current = null
+      pending.current = window.setTimeout(() => {
+        pending.current = 0
+        setPressed(false)
+        if (!disabled) onClick?.()
+      }, wait)
     },
     onPointerCancel: cancel,
     onPointerEnter: (e: PointerEvent) => {

@@ -47,19 +47,21 @@ Then `npx cap open ios` opens it in Xcode; pick a simulator or a connected iPhon
 
 ### Uploading to TestFlight
 
-1. `npm run build && npx cap sync ios`, then `npx cap open ios`.
-2. Signing is automatic with team `JCYVP356GX` (set in the project). Xcode → Settings → Accounts
+1. Smoke test first, every time: `npm run ios:smoke`, then look through
+   `test-results/ios-smoke/*/sheet.png` and play a round on a simulator. Never archive without it.
+2. `npm run build && npx cap sync ios`, then `npx cap open ios`.
+3. Signing is automatic with team `JCYVP356GX` (set in the project). Xcode → Settings → Accounts
    must have an Apple ID on that team. If an upload fails with "You do not have required
    contracts", the account holder has to accept the latest agreement in App Store Connect
    (Business, or the banner on the home page) first.
-3. Set the build number: **App** target → **General** → **Identity** → **Build**
-   (`CURRENT_PROJECT_VERSION`). The first upload of 2.0 can stay at 1; each later upload needs a
-   higher number. **Version** (`MARKETING_VERSION`) is 2.0, above the Unity build's 1.60; raise
-   it only for a new release (then the build number can start again at 1).
-4. Set the run destination to **Any iOS Device (arm64)** and choose **Product → Archive**.
-5. When the Organizer opens, select the archive → **Distribute App** → **App Store Connect** →
+4. Set the build number: **App** target → **General** → **Identity** → **Build**
+   (`CURRENT_PROJECT_VERSION`): one higher than the last upload (2.0 builds 1 and 2 are taken).
+   **Version** (`MARKETING_VERSION`) is 2.0, above the Unity build's 1.60; raise it only for a new
+   release (then the build number can start again at 1).
+5. Set the run destination to **Any iOS Device (arm64)** and choose **Product → Archive**.
+6. When the Organizer opens, select the archive → **Distribute App** → **App Store Connect** →
    **Distribute** (Xcode signs and uploads it).
-6. After App Store Connect finishes processing (usually 5–30 minutes; you get an email), the
+7. After App Store Connect finishes processing (usually 5–30 minutes; you get an email), the
    build shows under **TestFlight**. Internal groups with automatic distribution get it straight
    away, and the Unity build's testers update to it in the TestFlight app. For an external group,
    add the build to the group (the first build of a new version goes through a short beta review).
