@@ -8,6 +8,9 @@
 #
 #   npm run ios:smoke                 all models (two simulators at a time)
 #   npm run ios:smoke -- <udid> ...   just these simulators
+#   npm run ios:smoke -- "iPhone 13" "iPad Air 13-inch (M3)"   these models (created if missing)
+#
+# CI runs it on a GitHub macOS runner: .github/workflows/ios-smoke.yml (see docs/ios-cloud.md).
 #
 # It ends by putting the normal web build back into ios/, so a tour build can't be archived.
 set -euo pipefail
@@ -33,7 +36,33 @@ xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug \
 swiftc -O -o "$OUT/sheet" scripts/contact-sheet.swift 2>/dev/null
 
 if [ $# -gt 0 ]; then
-  DEVICES=$(for u in "$@"; do echo "$u $u"; done)
+  # Each argument is a simulator UDID or a model name ("iPhone 13"): a name picks that model on
+  # the newest runtime that has it, creating it on the newest iOS runtime if there is none.
+  DEVICES=$(xcrun simctl list -j | python3 -c '
+import json, re, subprocess, sys
+data = json.load(sys.stdin)
+ver = lambda rt: tuple(int(n) for n in re.findall(r"\d+", rt.split(".")[-1]))
+label = lambda name, rt: re.sub(r"\W+", "-", name).strip("-") + "_" + rt.split(".")[-1]
+devs = sorted(((rt, d) for rt, ds in data["devices"].items() if "iOS" in rt
+               for d in ds if d.get("isAvailable", True)), key=lambda x: ver(x[0]))
+for arg in sys.argv[1:]:
+    match = [(rt, d) for rt, d in devs if arg in (d["udid"], d["name"])]
+    if match:
+        rt, d = match[-1]
+        print(d["udid"], label(d["name"], rt) if d["name"] == arg else arg)
+        continue
+    types = [t for t in data["devicetypes"] if t["name"] == arg]
+    runtimes = sorted((r for r in data["runtimes"] if r["isAvailable"] and r["platform"] == "iOS"
+                       and any(t["identifier"] in [s["identifier"] for s in r.get("supportedDeviceTypes", [])] for t in types)),
+                      key=lambda r: ver(r["identifier"]))
+    if not runtimes:
+        print(f"No simulator, device type or runtime for {arg!r}; skipping", file=sys.stderr)
+        continue
+    rt = runtimes[-1]["identifier"]
+    print(f"Creating {arg} on {rt} ...", file=sys.stderr)
+    udid = subprocess.check_output(["xcrun", "simctl", "create", arg, types[0]["identifier"], rt], text=True).strip()
+    print(udid, label(arg, rt))
+' "$@")
 else
   # "<udid> <name>" for the newest runtime of each iPhone/iPad model, plus every iPhone 13.
   DEVICES=$(xcrun simctl list devices available -j | python3 -c '

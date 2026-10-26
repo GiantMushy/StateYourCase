@@ -141,6 +141,7 @@ Original C# lives in `../Partyament/Assets/Scripts`.
 screen-tour app (`VITE_TOUR=1`, `src/dev/tour.ts`), runs it on every installed iPhone/iPad model and
 an iPhone 13, and saves each screen plus a held 3D button to `test-results/ios-smoke/<device>/`
 (with a `sheet.png` contact sheet). Review the sheets, then play a round on a simulator by hand.
+Without a Mac, run it and the TestFlight upload on GitHub's macOS runners: see `docs/ios-cloud.md`.
 
 `npm test` covers the rules in `model.ts` and the voting ballot logic. `npm run test:e2e` plays three
 full rounds through the real UI in Chrome (the dev server exposes the store as `window.__game`).
